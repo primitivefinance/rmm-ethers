@@ -1,8 +1,5 @@
 import { parseWei, Wei } from 'web3-units'
-import { AllocateOptions, Pool, PoolSides } from '@primitivefi/rmm-sdk'
-
-/** Parameters of an allocate transaction. */
-export type PositionCreationParams<T = unknown> = { pool: Pool; options: AllocateOptions }
+import { Pool, PoolSides } from '@primitivefi/rmm-sdk'
 
 /**
  * Rmm liquidity position with a balance and poolId

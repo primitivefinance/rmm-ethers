@@ -11,8 +11,13 @@ import {
   SentEthersRmmTransaction,
   _connect,
 } from '.'
-import { Position, PositionCreationParams } from './Position'
-import { EngineCreationParams, TransactionFailedError } from './TransactableRmm'
+import { Position } from './Position'
+import {
+  EngineCreationParams,
+  TransactionFailedError,
+  PositionAllocateParams,
+  PositionAdjustmentDetails,
+} from './TransactableRmm'
 import { Pool } from '@primitivefi/rmm-sdk'
 import { Wei } from 'web3-units'
 
@@ -79,7 +84,7 @@ export class EthersRmm implements ReadableEthersRmm {
   /**
    * {@inheritdoc}
    */
-  allocate(params: PositionCreationParams, overrides: EthersTransactionOverrides): Promise<unknown> {
+  allocate(params: PositionAllocateParams, overrides: EthersTransactionOverrides): Promise<PositionAdjustmentDetails> {
     return this.send.allocate(params, overrides).then(waitForSuccess)
   }
 

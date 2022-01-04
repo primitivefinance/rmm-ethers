@@ -1,6 +1,7 @@
 // --- Receipt Types ---
 
 import {
+  PositionAdjustmentDetails,
   EthersTransactionOverrides,
   EthersTransactionReceipt,
   EthersTransactionResponse,
@@ -8,7 +9,7 @@ import {
   PopulatedEthersSignerTransaction,
   SentEthersRmmTransaction,
 } from '.'
-import { PositionCreationParams } from './Position'
+import { PositionAllocateParams } from './Position'
 import { EngineCreationParams } from './TransactableRmm'
 
 /**
@@ -134,9 +135,9 @@ export class SendableEthersRmm implements SendableRmm<EthersTransactionReceipt, 
 
   /** Executes an allocate liquidity transaction from a signer. */
   async allocate(
-    params: PositionCreationParams,
+    params: PositionAllocateParams,
     overrides?: EthersTransactionOverrides,
-  ): Promise<SentEthersRmmTransaction> {
+  ): Promise<SentEthersRmmTransaction<PositionAdjustmentDetails>> {
     return this._populate.allocate(params, overrides).then(sendTransaction)
   }
 
@@ -144,7 +145,7 @@ export class SendableEthersRmm implements SendableRmm<EthersTransactionReceipt, 
   async deploy(
     params: EngineCreationParams,
     overrides?: EthersTransactionOverrides,
-  ): Promise<SentEthersRmmTransaction> {
+  ): Promise<SentEthersRmmTransaction<DeployDetails>> {
     return this._populate.deploy(params, overrides).then(sendTransaction)
   }
 }

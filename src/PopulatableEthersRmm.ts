@@ -3,10 +3,10 @@ import { Transaction } from '@ethersproject/transactions'
 import { MethodParameters, PeripheryManager, FactoryManager } from '@primitivefi/rmm-sdk'
 import { Contract } from 'ethers'
 import { toBN } from 'web3-units'
-import { EthersTransactionOverrides, EthersTransactionRequest, _getContracts } from '.'
+import { PositionAdjustmentDetails, EthersTransactionOverrides, EthersTransactionRequest, _getContracts } from '.'
 
 import { EthersRmmConnection } from './EthersRmmConnection'
-import { PositionCreationParams } from './Position'
+import { PositionAllocateParams } from './Position'
 import { ReadableEthersRmm } from './ReadableEthersRmm'
 import {
   SentRmmTransaction,
@@ -211,7 +211,9 @@ export interface PopulatableRmm<R = unknown, S = unknown, P = unknown> {
    *
    * @beta
    */
-  allocate(params: PositionCreationParams): Promise<PopulatedRmmTransaction<P, SentRmmTransaction<S, RmmReceipt<R>>>>
+  allocate(
+    params: PositionAllocateParams,
+  ): Promise<PopulatedRmmTransaction<P, SentRmmTransaction<S, RmmReceipt<PositionAdjustmentDetails>>>>
 
   /**
    * Deploys a new Engine contract
@@ -243,12 +245,15 @@ export class PopulatableEthersRmm
   }
 
   /** Gets PopulatedEthersSignerTransaction object and adds a parse function to use when receipt is received. */
-  private _wrapPositionChange<T, P>(params: T, rawPopulatedTransaction: P): PopulatedEthersSignerTransaction {
+  private _wrapPositionChange<T, P>(
+    params: T,
+    rawPopulatedTransaction: P,
+  ): PopulatedEthersSignerTransaction<PositionAdjustmentDetails> {
     const { primitiveManager } = _getContracts(this._readable.connection)
 
     return new PopulatedEthersSignerTransaction(rawPopulatedTransaction, this._readable.connection, ({ logs }) => {
       return {
-        params,
+        poolId: 'yeee',
       }
     })
   }
@@ -278,9 +283,9 @@ export class PopulatableEthersRmm
 
   /** Gets a ready-to-send from a signer populated ethers transaction for allocating liquidity. */
   async allocate(
-    params: PositionCreationParams,
+    params: PositionAllocateParams,
     overrides?: EthersTransactionOverrides,
-  ): Promise<PopulatedEthersSignerTransaction<unknown>> {
+  ): Promise<PopulatedEthersSignerTransaction<PositionAdjustmentDetails>> {
     const { primitiveManager } = _getContracts(this._readable.connection)
 
     // returns tx object with overrides applied, so we can use to get gas limit
