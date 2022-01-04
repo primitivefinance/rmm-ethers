@@ -1,7 +1,10 @@
 import { ErrorCode } from '@ethersproject/logger'
 import { Transaction } from '@ethersproject/transactions'
+import { PeripheryManager } from '@primitivefi/rmm-sdk'
+import { EthersTransactionOverrides, EthersTransactionRequest, _getContracts } from '.'
 
 import { EthersRmmConnection } from './EthersRmmConnection'
+import { PositionCreationParams } from './Position'
 import { ReadableEthersRmm } from './ReadableEthersRmm'
 import {
   SentRmmTransaction,
@@ -41,9 +44,6 @@ const isTransactionFailedError = (error: Error): error is RawTransactionFailedEr
 
 // --- Populatable Ethers ---
 
-/** A ready to build populated transaction class with generic types. */
-export interface PopulatableRmm<R = unknown, S = unknown, P = unknown> {}
-
 /** A ready to send transaction with generic types. */
 export interface PopulatedRmmTransaction<P = unknown, T extends SentRmmTransaction = SentRmmTransaction> {
   /** Implementable populated transaction object. */
@@ -64,6 +64,8 @@ export interface PopulatedRmmTransaction<P = unknown, T extends SentRmmTransacti
  *
  * @remarks
  * Instantiates a Sent transaction class which is awaiting a receipt, with methods to get or wait for its receipt.
+ *
+ * T = details
  *
  * @beta
  */
@@ -123,11 +125,11 @@ export class SentEthersRmmTransaction<T = unknown>
  * Implements {@link PopulatedRmmTransaction}
  *
  * @remarks
- * Instantiates a populated transaction with a connection and method to parse its receipt info.
+ * Instantiates a populated transaction from a contract with a connection and method to parse its receipt info.
  *
  * @beta
  */
-export class PopulatedEthersRmmTransaction<T = unknown>
+export class PopulatedEthersRmmTransaction<P = unknown, T = unknown>
   implements PopulatedRmmTransaction<EthersPopulatedTransaction, SentEthersRmmTransaction<T>>
 {
   readonly rawPopulatedTransaction: EthersPopulatedTransaction
@@ -156,6 +158,60 @@ export class PopulatedEthersRmmTransaction<T = unknown>
 }
 
 /**
+ * Implements {@link PopulatedRmmTransaction}
+ *
+ * @remarks
+ * Instantiates a populated transaction from a signer.
+ *
+ * @beta
+ */
+export class PopulatedEthersSignerTransaction<T = unknown>
+  implements PopulatedRmmTransaction<EthersTransactionRequest, SentEthersRmmTransaction<T>>
+{
+  readonly rawPopulatedTransaction: EthersTransactionRequest
+
+  private readonly _connection: EthersRmmConnection
+  private readonly _parse: (rawReceipt: EthersTransactionReceipt) => T
+
+  /** @internal */
+  constructor(
+    rawPopulatedTransaction: EthersTransactionRequest,
+    connection: EthersRmmConnection,
+    parse: (rawReceipt: EthersTransactionReceipt) => T,
+  ) {
+    this.rawPopulatedTransaction = rawPopulatedTransaction
+    this._connection = connection
+    this._parse = parse
+  }
+
+  async send(): Promise<SentEthersRmmTransaction<T>> {
+    return new SentEthersRmmTransaction(
+      await this._connection.signer.sendTransaction(this.rawPopulatedTransaction),
+      this._connection,
+      this._parse,
+    )
+  }
+}
+
+/**
+ * Prepare rmm transactions for sending from signer.
+ *
+ * @remarks
+ * Implemented by {@link PopulatableEthersRmm}
+ * R = Receipt type, S = SentTransaction type, P = populated transaction type
+ *
+ * @beta
+ */
+export interface PopulatableRmm<R = unknown, S = unknown, P = unknown> {
+  /**
+   * Allocates liquidity by depositing both pool tokens.
+   *
+   * @beta
+   */
+  allocate(params: PositionCreationParams): Promise<PopulatedRmmTransaction<P, SentRmmTransaction<S, RmmReceipt<R>>>>
+}
+
+/**
  * Implements {@link PopulatableRmm}
  *
  * @remarks
@@ -164,7 +220,7 @@ export class PopulatedEthersRmmTransaction<T = unknown>
  * @beta
  */
 export class PopulatableEthersRmm
-  implements PopulatableRmm<EthersTransactionReceipt, EthersTransactionResponse, EthersPopulatedTransaction>
+  implements PopulatableRmm<EthersTransactionReceipt, EthersTransactionResponse, EthersTransactionRequest>
 {
   private readonly _readable: ReadableEthersRmm
 
@@ -174,5 +230,41 @@ export class PopulatableEthersRmm
 
   private _wrap(rawPopulatedTransaction: EthersPopulatedTransaction): PopulatedEthersRmmTransaction<void> {
     return new PopulatedEthersRmmTransaction(rawPopulatedTransaction, this._readable.connection, () => undefined)
+  }
+
+  /** Gets PopulatedEthersSignerTransaction object and adds a parse function to use when receipt is received. */
+  private _wrapPositionChange<T, P>(params: T, rawPopulatedTransaction: P): PopulatedEthersSignerTransaction {
+    const { primitiveManager } = _getContracts(this._readable.connection)
+
+    return new PopulatedEthersSignerTransaction(rawPopulatedTransaction, this._readable.connection, ({ logs }) => {
+      return {
+        params,
+      }
+    })
+  }
+
+  /** Gets a ready-to-send from a signer populated ethers transaction for allocating liquidity. */
+  async allocate(
+    params: PositionCreationParams,
+    overrides?: EthersTransactionOverrides,
+  ): Promise<PopulatedEthersSignerTransaction<unknown>> {
+    const { primitiveManager } = _getContracts(this._readable.connection)
+
+    // returns tx object with overrides applied, so we can use to get gas limit
+    const tx = () => {
+      return { ...PeripheryManager.allocateCallParameters(params.pool, params.options), ...overrides }
+    }
+
+    // gets gas limit, and updates overrides...
+    // therefore calling tx() will have the new gas limit
+    const prevTx = tx()
+    if (!prevTx.gasLimit) {
+      const gas = await primitiveManager.signer.estimateGas(prevTx)
+      const gasLimit = gas.mul(150).div(100)
+      overrides = { ...overrides, gasLimit }
+    }
+    const nextTx = tx()
+    const populated = await primitiveManager.signer.populateTransaction(nextTx)
+    return this._wrapPositionChange(params, populated)
   }
 }

@@ -4,7 +4,38 @@ import { PopulatableEthersRmm } from './PopulatableEthersRmm'
 import { SendableEthersRmm } from './SendableEthersRmm'
 import { Provider } from '@ethersproject/abstract-provider'
 import { Signer } from 'ethers'
-import { _connect } from '.'
+import {
+  EthersTransactionOverrides,
+  EthersTransactionReceipt,
+  FailedReceipt,
+  SentEthersRmmTransaction,
+  _connect,
+} from '.'
+import { Position, PositionCreationParams } from './Position'
+import { TransactionFailedError } from './TransactableRmm'
+import { Pool } from '@primitivefi/rmm-sdk'
+import { Wei } from 'web3-units'
+
+/**
+ * Thrown by {@link EthersRmm} in case of transaction failure.
+ *
+ * @public
+ */
+export class EthersTransactionFailedError extends TransactionFailedError<FailedReceipt<EthersTransactionReceipt>> {
+  constructor(message: string, failedReceipt: FailedReceipt<EthersTransactionReceipt>) {
+    super('EthersTransactionFailedError', message, failedReceipt)
+  }
+}
+
+const waitForSuccess = async <T>(tx: SentEthersRmmTransaction<T>) => {
+  const receipt = await tx.waitForReceipt()
+
+  if (receipt.status !== 'succeeded') {
+    throw new EthersTransactionFailedError('Transaction failed', receipt)
+  }
+
+  return receipt.details
+}
 
 /**
  * Combines interfaces of this library.
@@ -21,6 +52,7 @@ export class EthersRmm implements ReadableEthersRmm {
   /** Execute transactions. */
   readonly send: SendableEthersRmm
 
+  /** Rmm protocol state. */
   private _readable: ReadableEthersRmm
 
   /** @internal */
@@ -42,5 +74,24 @@ export class EthersRmm implements ReadableEthersRmm {
    */
   static async connect(signerOrProvider: Signer | Provider): Promise<EthersRmm> {
     return EthersRmm._from(await _connect(signerOrProvider))
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  allocate(params: PositionCreationParams, overrides: EthersTransactionOverrides): Promise<unknown> {
+    return this.send.allocate(params, overrides).then(waitForSuccess)
+  }
+
+  getPool(poolId: string, overrides?: any): Promise<Pool> {
+    return this._readable.getPool(poolId, overrides)
+  }
+
+  getLiquidityBalance(poolId: string, address: string, overrides?: any): Promise<Wei> {
+    return this._readable.getLiquidityBalance(poolId, address, overrides)
+  }
+
+  getPosition(pool: Pool, address: string, overrides?: any): Promise<Position> {
+    return this._readable.getPosition(pool, address, overrides)
   }
 }

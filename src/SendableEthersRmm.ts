@@ -1,6 +1,14 @@
 // --- Receipt Types ---
 
-import { EthersTransactionReceipt, EthersTransactionResponse, PopulatableEthersRmm } from '.'
+import {
+  EthersTransactionOverrides,
+  EthersTransactionReceipt,
+  EthersTransactionResponse,
+  PopulatableEthersRmm,
+  PopulatedEthersSignerTransaction,
+  SentEthersRmmTransaction,
+} from '.'
+import { PositionCreationParams } from './Position'
 
 /**
  * Indicates that the transaction hasn't been mined yet.
@@ -109,6 +117,8 @@ export interface SendableRmm<R = unknown, S = unknown> {}
 
 // --- Classes ---
 
+const sendTransaction = <T>(tx: PopulatedEthersSignerTransaction<T>) => tx.send()
+
 /**
  * Ethers implementation of {@link SendableRmm}
  *
@@ -119,5 +129,13 @@ export class SendableEthersRmm implements SendableRmm<EthersTransactionReceipt, 
 
   constructor(populate: PopulatableEthersRmm) {
     this._populate = populate
+  }
+
+  /** Executes an allocate liquidity transaction from a signer. */
+  async allocate(
+    params: PositionCreationParams,
+    overrides?: EthersTransactionOverrides,
+  ): Promise<SentEthersRmmTransaction> {
+    return this._populate.allocate(params, overrides).then(sendTransaction)
   }
 }

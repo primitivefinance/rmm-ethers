@@ -1,7 +1,8 @@
 import { Provider } from '@ethersproject/abstract-provider'
 import { Signer } from '@ethersproject/abstract-signer'
-import { TransactionResponse, TransactionReceipt } from '@ethersproject/abstract-provider'
+import { TransactionResponse, TransactionReceipt, TransactionRequest } from '@ethersproject/abstract-provider'
 import { PopulatedTransaction } from '@ethersproject/contracts'
+import { BigNumber } from '@ethersproject/bignumber'
 
 /**
  * Alias of Ethers' abstract
@@ -44,3 +45,23 @@ export type EthersTransactionReceipt = TransactionReceipt
  * @public
  */
 export type EthersPopulatedTransaction = PopulatedTransaction
+
+/**
+ * Alias of Ethers' `TransactionRequest` type, which implements
+ * {@link https://docs.ethers.io/v5/api/providers/types/#providers-TransactionRequest | TransactionRequest}.
+ *
+ * @public
+ */
+export type EthersTransactionRequest = TransactionRequest
+
+/**
+ * Optional parameters taken by {@link EthersRmm} transaction functions.
+ *
+ * @public
+ */
+export interface EthersTransactionOverrides {
+  from?: string
+  nonce?: number
+  gasLimit?: BigNumber
+  gasPrice?: BigNumber
+}

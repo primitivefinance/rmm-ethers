@@ -3,9 +3,7 @@ import { Signer } from '@ethersproject/abstract-signer'
 import { _connectToContracts, _RmmContractAddresses, _RmmContracts, _RmmDeploymentJSON } from './contracts'
 import { EthersProvider, EthersSigner } from './types'
 
-const deployments: { [chainId: number]: _RmmDeploymentJSON | undefined } = {
-  [1]: undefined,
-}
+const deployments: { [chainId: number]: _RmmDeploymentJSON | undefined } = {}
 
 /**
  * Provides information on connection to Rmm protocol.
@@ -48,6 +46,10 @@ export const connectionFrom = (
   return { provider, signer, deploymentDate: new Date(deploymentDate), ...deployment } as _InternalEthersRmmConnection
 }
 
+/** @internal */
+export const _getContracts = (connection: EthersRmmConnection): _RmmContracts =>
+  (connection as _InternalEthersRmmConnection)._contracts
+
 const getProviderAndSigner = (
   signerOrProvider: EthersSigner | EthersProvider,
 ): [provider: EthersProvider, signer: EthersSigner | undefined] => {
@@ -86,9 +88,10 @@ export function _connectToNetwork(
   signer: EthersSigner | undefined,
   chainId: number,
 ): EthersRmmConnection {
-  if (!deployments[chainId]) throw new Error(`No deployment found for chainId: ${chainId}`)
+  const dep: _RmmDeploymentJSON | undefined = deployments[chainId]
+  if (!dep) throw new Error(`No deployment found for chainId: ${chainId}`)
 
-  const deployment: _RmmDeploymentJSON = deployments[chainId]
+  const deployment: _RmmDeploymentJSON = dep
   return connectionFrom(provider, signer, _connectToContracts(signer ?? provider, deployment), deployment)
 }
 

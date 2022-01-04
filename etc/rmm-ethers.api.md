@@ -4,14 +4,325 @@
 
 ```ts
 
+import { AllocateOptions } from '@primitivefi/rmm-sdk';
+import { BigNumber } from '@ethersproject/bignumber';
+import { Contract } from '@ethersproject/contracts';
+import { Pool } from '@primitivefi/rmm-sdk';
+import { PoolSides } from '@primitivefi/rmm-sdk';
+import { PopulatedTransaction } from '@ethersproject/contracts';
+import { Provider } from '@ethersproject/abstract-provider';
+import { Signer } from '@ethersproject/abstract-signer';
+import { Signer as Signer_2 } from 'ethers';
+import { TransactionReceipt } from '@ethersproject/abstract-provider';
+import { TransactionRequest } from '@ethersproject/abstract-provider';
+import { TransactionResponse } from '@ethersproject/abstract-provider';
+import { Wei } from 'web3-units';
+
+// @internal (undocumented)
+export const _connect: (signerOrProvider: EthersSigner | EthersProvider) => Promise<EthersRmmConnection>;
+
+// Warning: (ae-incompatible-release-tags) The symbol "connectionFrom" is marked as @public, but its signature references "_RmmContracts" which is marked as @internal
+// Warning: (ae-incompatible-release-tags) The symbol "connectionFrom" is marked as @public, but its signature references "_RmmDeploymentJSON" which is marked as @internal
+// Warning: (ae-incompatible-release-tags) The symbol "connectionFrom" is marked as @public, but its signature references "_InternalEthersRmmConnection" which is marked as @internal
+//
 // @public (undocumented)
-export const Engine = "";
+export const connectionFrom: (provider: EthersProvider, signer: EthersSigner | undefined, _contracts: _RmmContracts, { deploymentDate, ...deployment }: _RmmDeploymentJSON) => _InternalEthersRmmConnection;
+
+// @internal (undocumented)
+export const _connectToContracts: (signerOrProvider: EthersSigner | EthersProvider, { addresses }: _RmmDeploymentJSON) => _RmmContracts;
+
+// @internal (undocumented)
+export const _connectToDeployment: (deployment: _RmmDeploymentJSON, signerOrProvider: EthersSigner | EthersProvider) => EthersRmmConnection;
+
+// Warning: (ae-incompatible-release-tags) The symbol "_connectToNetwork" is marked as @public, but its signature references "EthersRmmConnection" which is marked as @beta
+//
+// @public (undocumented)
+export function _connectToNetwork(provider: EthersProvider, signer: EthersSigner | undefined, chainId: number): EthersRmmConnection;
+
+// @public
+export type EthersPopulatedTransaction = PopulatedTransaction;
+
+// @public
+export type EthersProvider = Provider;
+
+// @beta
+export class EthersRmm implements ReadableEthersRmm {
+    // @internal
+    constructor(readable: ReadableEthersRmm);
+    // Warning: (ae-forgotten-export) The symbol "PositionCreationParams" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-unresolved-inheritdoc-base) The @inheritDoc tag needs a TSDoc declaration reference; signature matching is not supported yet
+    //
+    // (undocumented)
+    allocate(params: PositionCreationParams, overrides: EthersTransactionOverrides): Promise<unknown>;
+    static connect(signerOrProvider: Signer_2 | Provider): Promise<EthersRmm>;
+    readonly connection: EthersRmmConnection;
+    // (undocumented)
+    static _from(connection: EthersRmmConnection): EthersRmm;
+    // (undocumented)
+    getLiquidityBalance(poolId: string, address: string, overrides?: any): Promise<Wei>;
+    // (undocumented)
+    getPool(poolId: string, overrides?: any): Promise<Pool>;
+    // Warning: (ae-forgotten-export) The symbol "Position" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    getPosition(pool: Pool, address: string, overrides?: any): Promise<Position>;
+    readonly populate: PopulatableEthersRmm;
+    readonly send: SendableEthersRmm;
+}
+
+// @beta
+export interface EthersRmmConnection {
+    readonly addresses: Record<string, string>;
+    readonly chainId: number;
+    readonly deploymentDate: Date;
+    readonly provider: EthersProvider;
+    readonly signer: EthersSigner;
+    readonly startBlock: number;
+}
 
 // @public (undocumented)
-export interface Test {
-    // (undocumented)
-    text: number;
+export interface EthersRmmConnectionOptional {
+    // Warning: (ae-forgotten-export) The symbol "EthersRmmStoreOption" needs to be exported by the entry point index.d.ts
+    //
+    // @beta
+    readonly hasStore?: EthersRmmStoreOption;
 }
+
+// @public
+export type EthersSigner = Signer;
+
+// Warning: (ae-forgotten-export) The symbol "TransactionFailedError" needs to be exported by the entry point index.d.ts
+//
+// @public
+export class EthersTransactionFailedError extends TransactionFailedError<FailedReceipt<EthersTransactionReceipt>> {
+    constructor(message: string, failedReceipt: FailedReceipt<EthersTransactionReceipt>);
+}
+
+// @public
+export interface EthersTransactionOverrides {
+    // (undocumented)
+    from?: string;
+    // (undocumented)
+    gasLimit?: BigNumber;
+    // (undocumented)
+    gasPrice?: BigNumber;
+    // (undocumented)
+    nonce?: number;
+}
+
+// @public
+export type EthersTransactionReceipt = TransactionReceipt;
+
+// @public
+export type EthersTransactionRequest = TransactionRequest;
+
+// @public
+export type EthersTransactionResponse = TransactionResponse;
+
+// @public
+export type FailedReceipt<R = unknown> = {
+    status: 'failed';
+    rawReceipt: R;
+};
+
+// @internal (undocumented)
+export const _failedReceipt: <R>(rawReceipt: R) => FailedReceipt<R>;
+
+// @internal (undocumented)
+export const _getContracts: (connection: EthersRmmConnection) => _RmmContracts;
+
+// @internal (undocumented)
+export interface _InternalEthersRmmConnection extends EthersRmmConnection {
+    // (undocumented)
+    readonly addresses: _RmmContractAddresses;
+    // (undocumented)
+    readonly _contracts: _RmmContracts;
+    // (undocumented)
+    readonly _multicall?: any;
+}
+
+// @public
+export type MinedReceipt<R = unknown, D = unknown> = FailedReceipt<R> | SuccessfulReceipt<R, D>;
+
+// @public (undocumented)
+export function parseTokenURI(uri: string): any;
+
+// @public
+export type PendingReceipt = {
+    status: 'pending';
+};
+
+// @internal (undocumented)
+export const _pendingReceipt: PendingReceipt;
+
+// @public (undocumented)
+export function poolify(raw: string): Pool;
+
+// @beta
+export class PopulatableEthersRmm implements PopulatableRmm<EthersTransactionReceipt, EthersTransactionResponse, EthersTransactionRequest> {
+    constructor(readable: ReadableEthersRmm);
+    allocate(params: PositionCreationParams, overrides?: EthersTransactionOverrides): Promise<PopulatedEthersSignerTransaction<unknown>>;
+}
+
+// @beta
+export interface PopulatableRmm<R = unknown, S = unknown, P = unknown> {
+    allocate(params: PositionCreationParams): Promise<PopulatedRmmTransaction<P, SentRmmTransaction<S, RmmReceipt<R>>>>;
+}
+
+// @beta
+export class PopulatedEthersRmmTransaction<P = unknown, T = unknown> implements PopulatedRmmTransaction<EthersPopulatedTransaction, SentEthersRmmTransaction<T>> {
+    // @internal
+    constructor(rawPopulatedTransaction: EthersPopulatedTransaction, connection: EthersRmmConnection, parse: (rawReceipt: EthersTransactionReceipt) => T);
+    // (undocumented)
+    readonly rawPopulatedTransaction: EthersPopulatedTransaction;
+    // (undocumented)
+    send(): Promise<SentEthersRmmTransaction<T>>;
+}
+
+// @beta
+export class PopulatedEthersSignerTransaction<T = unknown> implements PopulatedRmmTransaction<EthersTransactionRequest, SentEthersRmmTransaction<T>> {
+    // @internal
+    constructor(rawPopulatedTransaction: EthersTransactionRequest, connection: EthersRmmConnection, parse: (rawReceipt: EthersTransactionReceipt) => T);
+    // (undocumented)
+    readonly rawPopulatedTransaction: EthersTransactionRequest;
+    // (undocumented)
+    send(): Promise<SentEthersRmmTransaction<T>>;
+}
+
+// @public
+export interface PopulatedRmmTransaction<P = unknown, T extends SentRmmTransaction = SentRmmTransaction> {
+    readonly rawPopulatedTransaction: P;
+    // @beta
+    send(): Promise<T>;
+}
+
+// @internal (undocumented)
+export enum _RawErrorReason {
+    // (undocumented)
+    TRANSACTION_CANCELLED = "cancelled",
+    // (undocumented)
+    TRANSACTION_FAILED = "transaction failed",
+    // (undocumented)
+    TRANSACTION_REPLACED = "replaced",
+    // (undocumented)
+    TRANSACTION_REPRICED = "repriced"
+}
+
+// @beta
+export class ReadableEthersRmm implements ReadableRmm {
+    // @internal
+    constructor(connection: EthersRmmConnection);
+    static connect(signerOrProvider: EthersSigner | EthersProvider): Promise<ReadableEthersRmm>;
+    // (undocumented)
+    readonly connection: EthersRmmConnection;
+    // @internal (undocumented)
+    static _from(connection: EthersRmmConnection): ReadableEthersRmm;
+    // (undocumented)
+    getLiquidityBalance(poolId: string, address: string, overrides?: any): Promise<Wei>;
+    // (undocumented)
+    getPool(poolId: string, overrides?: any): Promise<Pool>;
+    // (undocumented)
+    getPosition(pool: Pool, address: string, overrides?: any): Promise<Position>;
+}
+
+// @beta
+export interface ReadableRmm {
+}
+
+// @internal (undocumented)
+export const _RmmContractAbis: {
+    primitiveFactory: never[];
+    primitiveManager: never[];
+    positionRenderer: never[];
+    positionDescriptor: never[];
+};
+
+// Warning: (ae-forgotten-export) The symbol "RmmContractsKey" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export type _RmmContractAddresses = Record<RmmContractsKey, string>;
+
+// @internal (undocumented)
+export interface _RmmContracts {
+    // (undocumented)
+    positionDescriptor: Contract;
+    // (undocumented)
+    positionRenderer: Contract;
+    // (undocumented)
+    primitiveFactory: Contract;
+    // (undocumented)
+    primitiveManager: Contract;
+}
+
+// @internal (undocumented)
+export interface _RmmDeploymentJSON {
+    // (undocumented)
+    readonly addresses: _RmmContractAddresses;
+    // (undocumented)
+    readonly chainId: number;
+    // (undocumented)
+    readonly deploymentDate: number;
+    // (undocumented)
+    readonly startBlock: number;
+}
+
+// @public
+export type RmmReceipt<R = unknown, D = unknown> = PendingReceipt | MinedReceipt<R, D>;
+
+// @public (undocumented)
+export abstract class RmmStore<T = unknown> {
+    // (undocumented)
+    protected _load(): void;
+    // (undocumented)
+    protected _loaded: boolean;
+    // (undocumented)
+    logging: boolean;
+    // (undocumented)
+    onLoaded?: () => void;
+    start(): () => void;
+    subscribe(): () => void;
+    // (undocumented)
+    protected _update(): void;
+}
+
+// @beta
+export class SendableEthersRmm implements SendableRmm<EthersTransactionReceipt, EthersTransactionResponse> {
+    constructor(populate: PopulatableEthersRmm);
+    allocate(params: PositionCreationParams, overrides?: EthersTransactionOverrides): Promise<SentEthersRmmTransaction>;
+}
+
+// @public (undocumented)
+export interface SendableRmm<R = unknown, S = unknown> {
+}
+
+// @beta
+export class SentEthersRmmTransaction<T = unknown> implements SentRmmTransaction<EthersTransactionResponse, RmmReceipt<EthersTransactionReceipt, T>> {
+    // @internal
+    constructor(rawSentTransaction: EthersTransactionResponse, connection: EthersRmmConnection, parse: (rawReceipt: EthersTransactionReceipt) => T);
+    // (undocumented)
+    getReceipt(): Promise<RmmReceipt<EthersTransactionReceipt, T>>;
+    // (undocumented)
+    readonly rawSentTransaction: EthersTransactionResponse;
+    // (undocumented)
+    waitForReceipt(): Promise<MinedReceipt<EthersTransactionReceipt, T>>;
+}
+
+// @public (undocumented)
+export interface SentRmmTransaction<S = unknown, T extends RmmReceipt = RmmReceipt> {
+    getReceipt(): Promise<T>;
+    readonly rawSentTransaction: S;
+    waitForReceipt(): Promise<Extract<T, MinedReceipt>>;
+}
+
+// @public
+export type SuccessfulReceipt<R = unknown, D = unknown> = {
+    status: 'succeeded';
+    rawReceipt: R;
+    details: D;
+};
+
+// @internal (undocumented)
+export const _successfulReceipt: <R, D>(rawReceipt: R, details: D, toString?: (() => string) | undefined) => SuccessfulReceipt<R, D>;
 
 // (No @packageDocumentation comment for this package)
 

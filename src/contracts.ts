@@ -25,10 +25,12 @@ export type _RmmContractAddresses = Record<RmmContractsKey, string>
 
 /** @internal */
 export interface _RmmDeploymentJSON {
+  readonly addresses: _RmmContractAddresses
   readonly chainId: number
   readonly deploymentDate: number
   readonly startBlock: number
-  readonly addresses: _RmmContractAddresses
+  readonly version: string
+  readonly _isDev: boolean
 }
 
 const mapContracts = <T, U>(contracts: Record<RmmContractsKey, T>, f: (t: T, key: RmmContractsKey) => U) =>
