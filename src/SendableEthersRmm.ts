@@ -9,6 +9,7 @@ import {
   SentEthersRmmTransaction,
 } from '.'
 import { PositionCreationParams } from './Position'
+import { EngineCreationParams } from './TransactableRmm'
 
 /**
  * Indicates that the transaction hasn't been mined yet.
@@ -137,5 +138,13 @@ export class SendableEthersRmm implements SendableRmm<EthersTransactionReceipt, 
     overrides?: EthersTransactionOverrides,
   ): Promise<SentEthersRmmTransaction> {
     return this._populate.allocate(params, overrides).then(sendTransaction)
+  }
+
+  /** Executes a deploy engine transaction from the primitive factory using the signer. */
+  async deploy(
+    params: EngineCreationParams,
+    overrides?: EthersTransactionOverrides,
+  ): Promise<SentEthersRmmTransaction> {
+    return this._populate.deploy(params, overrides).then(sendTransaction)
   }
 }

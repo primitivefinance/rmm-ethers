@@ -162,11 +162,14 @@ export function poolify(raw: string): Pool;
 export class PopulatableEthersRmm implements PopulatableRmm<EthersTransactionReceipt, EthersTransactionResponse, EthersTransactionRequest> {
     constructor(readable: ReadableEthersRmm);
     allocate(params: PositionCreationParams, overrides?: EthersTransactionOverrides): Promise<PopulatedEthersSignerTransaction<unknown>>;
+    // Warning: (ae-forgotten-export) The symbol "EngineCreationParams" needs to be exported by the entry point index.d.ts
+    deploy(params: EngineCreationParams, overrides?: EthersTransactionOverrides): Promise<PopulatedEthersSignerTransaction<unknown>>;
 }
 
 // @beta
 export interface PopulatableRmm<R = unknown, S = unknown, P = unknown> {
     allocate(params: PositionCreationParams): Promise<PopulatedRmmTransaction<P, SentRmmTransaction<S, RmmReceipt<R>>>>;
+    deploy(params: EngineCreationParams): Promise<PopulatedRmmTransaction<P, SentRmmTransaction<S, RmmReceipt<R>>>>;
 }
 
 // @beta
@@ -263,7 +266,11 @@ export interface _RmmDeploymentJSON {
     // (undocumented)
     readonly deploymentDate: number;
     // (undocumented)
+    readonly _isDev: boolean;
+    // (undocumented)
     readonly startBlock: number;
+    // (undocumented)
+    readonly version: string;
 }
 
 // @public

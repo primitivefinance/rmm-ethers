@@ -1,5 +1,7 @@
-import { task, HardhatUserConfig, types, extendEnvironment } from 'hardhat/config'
-import { HardhatRuntimeEnvironment, NetworkUserConfig } from 'hardhat/types'
+import { task, HardhatUserConfig, types, extendEnvironment, extendConfig } from 'hardhat/config'
+import { Artifact, FactoryOptions, HardhatConfig, HardhatRuntimeEnvironment, NetworkUserConfig } from 'hardhat/types'
+import { lazyObject } from 'hardhat/plugins'
+import { Artifacts } from 'hardhat/internal/artifacts'
 
 import { config as dotenvConfig } from 'dotenv'
 import path, { resolve } from 'path'
@@ -21,6 +23,7 @@ import 'hardhat/types/runtime'
 import { _RmmDeploymentJSON, _connectToContracts } from './src/contracts'
 import { deployAndSetupContracts, setSilent } from './utils/deploy'
 import { BigNumber } from 'ethers'
+import { artifacts } from 'hardhat'
 
 const chainIds = {
   ganache: 1337,
@@ -84,7 +87,79 @@ const getContractFactory: (
 
 // -- Hardhat Environment --
 
+function normalizePath(config: HardhatConfig, userPath: string | undefined, defaultPath: string): string {
+  if (userPath === undefined) {
+    userPath = path.join(config.paths.root, defaultPath)
+  } else {
+    if (!path.isAbsolute(userPath)) {
+      userPath = path.normalize(path.join(config.paths.root, userPath))
+    }
+  }
+  return userPath
+}
+
+function normalizePathArray(config: HardhatConfig, paths: string[]): string[] {
+  const newArray: string[] = []
+  for (const value of paths) {
+    if (value) {
+      newArray.push(normalizePath(config, value, value))
+    }
+  }
+  return newArray
+}
+
 const contractsVersion = 'beta.4'
+
+declare module 'hardhat/types/config' {
+  interface HardhatUserConfig {
+    external?: {
+      deployments?: {
+        [networkName: string]: string[]
+      }
+      contracts?: {
+        artifacts: string
+      }[]
+    }
+  }
+
+  interface HardhatConfig {
+    external?: {
+      deployments?: {
+        [networkName: string]: string[]
+      }
+      contracts?: {
+        artifacts: string
+      }[]
+    }
+  }
+}
+
+extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
+  if (userConfig.external) {
+    if (!config.external) {
+      config.external = {}
+    }
+    if (userConfig.external.contracts) {
+      const externalContracts: { artifacts: string }[] = []
+      config.external.contracts = externalContracts
+      for (const userDefinedExternalContracts of userConfig.external.contracts) {
+        externalContracts.push({
+          artifacts: normalizePath(
+            config,
+            userDefinedExternalContracts.artifacts,
+            userDefinedExternalContracts.artifacts,
+          ),
+        })
+      }
+    }
+    if (userConfig.external.deployments) {
+      config.external.deployments = {}
+      for (const key of Object.keys(userConfig.external.deployments)) {
+        config.external.deployments[key] = normalizePathArray(config, userConfig.external.deployments[key])
+      }
+    }
+  }
+})
 
 declare module 'hardhat/types/runtime' {
   interface HardhatRuntimeEnvironment {
@@ -104,6 +179,39 @@ extendEnvironment(env => {
 
     return { ...deployment, version: contractsVersion }
   }
+
+  env.ethers = lazyObject(() => {
+    return {
+      ...env.ethers,
+      getContractFactory: async (name: string, signerOrOptions?: Signer | FactoryOptions | undefined) => {
+        const importPaths = []
+        if (env.config.external && env.config.external.contracts) {
+          for (const externalContracts of env.config.external.contracts) {
+            importPaths.push(externalContracts.artifacts)
+          }
+        }
+        let artifact
+        for (const importPath of importPaths) {
+          artifact = new Artifacts(importPath)
+          return await artifact.readArtifact(name)
+          /* if (artifact) {
+            return artifact as Artifact
+          } */
+        }
+
+        const { ContractFactory } = env.ethers
+        let signer = signerOrOptions instanceof Signer ? signerOrOptions : undefined
+        if (signer === undefined) {
+          const signers = await env.ethers.getSigners()
+          signer = signers[0]
+        }
+
+        const abiWithAddedGas = addGasToAbiMethodsIfNecessary(env.network.config, artifact.abi)
+
+        return new ContractFactory(abiWithAddedGas, bytecode, signer)
+      },
+    }
+  })
 })
 
 // -- Task --
@@ -181,6 +289,16 @@ const config: HardhatUserConfig = {
   typechain: {
     outDir: 'typechain',
     target: 'ethers-v5',
+  },
+  external: {
+    contracts: [
+      {
+        artifacts: 'node_modules/@primitivefi/rmm-core/artifacts',
+      },
+      {
+        artifacts: 'node_modules/@primitivefi/rmm-periphery/artifacts',
+      },
+    ],
   },
 }
 

@@ -1,6 +1,8 @@
 import { ErrorCode } from '@ethersproject/logger'
 import { Transaction } from '@ethersproject/transactions'
-import { PeripheryManager } from '@primitivefi/rmm-sdk'
+import { MethodParameters, PeripheryManager, FactoryManager } from '@primitivefi/rmm-sdk'
+import { Contract } from 'ethers'
+import { toBN } from 'web3-units'
 import { EthersTransactionOverrides, EthersTransactionRequest, _getContracts } from '.'
 
 import { EthersRmmConnection } from './EthersRmmConnection'
@@ -14,6 +16,7 @@ import {
   _pendingReceipt,
   _successfulReceipt,
 } from './SendableEthersRmm'
+import { EngineCreationParams } from './TransactableRmm'
 
 import { EthersPopulatedTransaction, EthersTransactionReceipt, EthersTransactionResponse } from './types'
 
@@ -209,6 +212,13 @@ export interface PopulatableRmm<R = unknown, S = unknown, P = unknown> {
    * @beta
    */
   allocate(params: PositionCreationParams): Promise<PopulatedRmmTransaction<P, SentRmmTransaction<S, RmmReceipt<R>>>>
+
+  /**
+   * Deploys a new Engine contract
+   *
+   * @beta
+   */
+  deploy(params: EngineCreationParams): Promise<PopulatedRmmTransaction<P, SentRmmTransaction<S, RmmReceipt<R>>>>
 }
 
 /**
@@ -243,6 +253,29 @@ export class PopulatableEthersRmm
     })
   }
 
+  private async _applyGasLimit(
+    contract: Contract,
+    txParams: MethodParameters,
+    overrides?: EthersTransactionOverrides,
+  ): Promise<EthersTransactionRequest> {
+    // returns tx object with overrides applied, so we can use to get gas limit
+    const tx = () => {
+      return { to: contract.address, ...txParams, ...overrides }
+    }
+
+    // gets gas limit, and updates overrides...
+    // therefore calling tx() will have the new gas limit
+    const prevTx = tx()
+    if (!prevTx.gasLimit) {
+      const gas = await contract.signer.estimateGas(prevTx)
+      const gasLimit = gas.mul(150).div(100)
+      overrides = { ...overrides, gasLimit }
+    }
+    const nextTx = tx()
+    const populated = await contract.signer.populateTransaction(nextTx)
+    return populated
+  }
+
   /** Gets a ready-to-send from a signer populated ethers transaction for allocating liquidity. */
   async allocate(
     params: PositionCreationParams,
@@ -265,6 +298,24 @@ export class PopulatableEthersRmm
     }
     const nextTx = tx()
     const populated = await primitiveManager.signer.populateTransaction(nextTx)
+    return this._wrapPositionChange(params, populated)
+  }
+
+  /** Deploys an Engine. */
+  async deploy(
+    params: EngineCreationParams,
+    overrides?: EthersTransactionOverrides,
+  ): Promise<PopulatedEthersSignerTransaction<unknown>> {
+    const { primitiveFactory } = _getContracts(this._readable.connection)
+
+    const populated = await this._applyGasLimit(
+      primitiveFactory,
+      {
+        calldata: FactoryManager.encodeDeploy(params.risky, params.stable),
+        value: toBN(0)._hex,
+      },
+      overrides,
+    )
     return this._wrapPositionChange(params, populated)
   }
 }

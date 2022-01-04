@@ -43,7 +43,13 @@ export const connectionFrom = (
   _contracts: _RmmContracts,
   { deploymentDate, ...deployment }: _RmmDeploymentJSON,
 ): _InternalEthersRmmConnection => {
-  return { provider, signer, deploymentDate: new Date(deploymentDate), ...deployment } as _InternalEthersRmmConnection
+  return {
+    provider,
+    signer,
+    deploymentDate: new Date(deploymentDate),
+    _contracts,
+    ...deployment,
+  } as _InternalEthersRmmConnection
 }
 
 /** @internal */

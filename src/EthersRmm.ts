@@ -12,7 +12,7 @@ import {
   _connect,
 } from '.'
 import { Position, PositionCreationParams } from './Position'
-import { TransactionFailedError } from './TransactableRmm'
+import { EngineCreationParams, TransactionFailedError } from './TransactableRmm'
 import { Pool } from '@primitivefi/rmm-sdk'
 import { Wei } from 'web3-units'
 
@@ -81,6 +81,10 @@ export class EthersRmm implements ReadableEthersRmm {
    */
   allocate(params: PositionCreationParams, overrides: EthersTransactionOverrides): Promise<unknown> {
     return this.send.allocate(params, overrides).then(waitForSuccess)
+  }
+
+  deploy(params: EngineCreationParams, overrides?: EthersTransactionOverrides): Promise<unknown> {
+    return this.send.deploy(params, overrides).then(waitForSuccess)
   }
 
   getPool(poolId: string, overrides?: any): Promise<Pool> {

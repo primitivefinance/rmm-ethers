@@ -15,3 +15,7 @@ export class TransactionFailedError<T extends FailedReceipt = FailedReceipt> ext
     this.failedReceipt = failedReceipt
   }
 }
+
+// --- Params ---
+
+export type EngineCreationParams = { risky: string; stable: string }
