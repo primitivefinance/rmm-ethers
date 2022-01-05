@@ -299,11 +299,16 @@ export class PopulatableEthersRmm
           .map(({ args: { poolId } }) => poolId === params.pool.poolId)
       } catch (e) {}
 
-      const [newPosition] = created
+      let [newPosition] = created
         ? [new Position(params.pool)] // FIX!: no way to get new liquidity from created pool
         : primitiveManager
             .extractEvents(logs, 'Allocate')
             .map(({ args: { delLiquidity } }) => new Position(params.pool, weiToWei(delLiquidity.toString())))
+
+      if (!newPosition)
+        [newPosition] = primitiveManager
+          .extractEvents(logs, 'Remove')
+          .map(({ args: { delLiquidity } }) => new Position(params.pool, weiToWei(delLiquidity.toString())))
 
       return {
         params,
@@ -356,10 +361,10 @@ export class PopulatableEthersRmm
     params: PositionRemoveParams,
     overrides?: EthersTransactionOverrides,
   ): Promise<PopulatedEthersSignerTransaction<PositionAdjustmentDetails>> {
-    const { primitiveFactory } = _getContracts(this._readable.connection)
+    const { primitiveManager } = _getContracts(this._readable.connection)
 
     const populated = await this._applyGasLimit(
-      primitiveFactory,
+      primitiveManager,
       PeripheryManager.removeCallParameters(params.pool, params.options),
       overrides,
     )
@@ -396,10 +401,10 @@ export class PopulatableEthersRmm
     params: PositionTransferParams,
     overrides?: EthersTransactionOverrides,
   ): Promise<PopulatedEthersSignerTransaction<void>> {
-    const { primitiveFactory } = _getContracts(this._readable.connection)
+    const { primitiveManager } = _getContracts(this._readable.connection)
 
     const populated = await this._applyGasLimit(
-      primitiveFactory,
+      primitiveManager,
       PeripheryManager.safeTransferFromParameters(params.options),
       overrides,
     )
@@ -412,10 +417,10 @@ export class PopulatableEthersRmm
     params: PositionBatchTransferParams,
     overrides?: EthersTransactionOverrides,
   ): Promise<PopulatedEthersSignerTransaction<void>> {
-    const { primitiveFactory } = _getContracts(this._readable.connection)
+    const { primitiveManager } = _getContracts(this._readable.connection)
 
     const populated = await this._applyGasLimit(
-      primitiveFactory,
+      primitiveManager,
       PeripheryManager.batchTransferFromParameters(params.options),
       overrides,
     )

@@ -73,7 +73,26 @@ interface ManagerContract extends _TypedRmmContract<PrimitiveManager> {
   extractEvents(
     logs: Log[],
     name: 'Allocate',
-  ): _TypedLogDescription<{ poolId: string; delRisky: BigNumber; delStable: BigNumber; delLiquidity: BigNumber }>[]
+  ): _TypedLogDescription<{
+    payer: string
+    engine: string
+    poolId: string
+    delLiquidity: BigNumber
+    delRisky: BigNumber
+    delStable: BigNumber
+    fromMargin: boolean
+  }>[]
+  extractEvents(
+    logs: Log[],
+    name: 'Remove',
+  ): _TypedLogDescription<{
+    payer: string
+    engine: string
+    poolId: string
+    delLiquidity: BigNumber
+    delRisky: BigNumber
+    delStable: BigNumber
+  }>[]
   extractEvents(logs: Log[], name: 'Create'): _TypedLogDescription<{ poolId: string }>[]
 }
 
