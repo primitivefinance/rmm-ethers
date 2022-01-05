@@ -1,51 +1,42 @@
-import { task, HardhatUserConfig, types, extendEnvironment } from 'hardhat/config'
-import { HardhatRuntimeEnvironment, NetworkUserConfig } from 'hardhat/types'
+import 'hardhat/types/runtime'
+import { task, subtask, HardhatUserConfig, types, extendEnvironment, extendConfig } from 'hardhat/config'
+import { HardhatConfig, HardhatRuntimeEnvironment, NetworkUserConfig } from 'hardhat/types'
 
 import { config as dotenvConfig } from 'dotenv'
 import path, { resolve } from 'path'
 import fs from 'fs'
 dotenvConfig({ path: resolve(__dirname, './.env') })
 
-import '@nomiclabs/hardhat-waffle'
 import '@typechain/hardhat'
-import '@nomiclabs/hardhat-ethers'
-import '@nomiclabs/hardhat-waffle'
-
 import 'hardhat-gas-reporter'
+import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-etherscan'
 
 import { Signer } from '@ethersproject/abstract-signer'
-import { ContractFactory, Overrides } from '@ethersproject/contracts'
+import { BigNumber } from '@ethersproject/bignumber'
+import { Overrides } from '@ethersproject/contracts'
 
-import 'hardhat/types/runtime'
+import { DefenderRelayProvider, DefenderRelaySigner } from 'defender-relay-client/lib/ethers'
+
 import { _RmmDeploymentJSON, _connectToContracts } from './src/contracts'
 import { deployAndSetupContracts, setSilent } from './utils/deploy'
-import { BigNumber } from 'ethers'
 
-const chainIds = {
-  ganache: 1337,
-  goerli: 5,
-  hardhat: 31337,
-  kovan: 42,
-  mainnet: 1,
-  rinkeby: 4,
-  ropsten: 3,
-}
-
+// --- Env ---
 const MNEMONIC = process.env.MNEMONIC || ''
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || ''
 const INFURA_API_KEY = process.env.INFURA_API_KEY || ''
 const ALCHEMY_KEY = process.env.ALCHEMY_KEY || ''
 
-// This is a sample Hardhat task. To learn how to create your own go to
-// https://hardhat.org/guides/create-task.html
-task('accounts', 'Prints the list of accounts', async (args, hre) => {
-  const accounts = await hre.ethers.getSigners()
-
-  for (const account of accounts) {
-    console.log(await account.getAddress())
-  }
-})
+const {
+  RELAY_KOVAN_SECRET,
+  RELAY_KOVAN_API,
+  RELAY_RINKEBY_SECRET,
+  RELAY_RINKEBY_API,
+  UNIVERSAL_RELAY_KOVAN_SECRET,
+  UNIVERSAL_RELAY_KOVAN_API,
+  UNIVERSAL_RELAY_RINKEBY_SECRET,
+  UNIVERSAL_RELAY_RINKEBY_API,
+} = process.env
 
 function createTestnetConfig(network: keyof typeof chainIds): NetworkUserConfig {
   const url: string = 'https://' + network + '.infura.io/v3/' + INFURA_API_KEY
@@ -61,6 +52,17 @@ function createTestnetConfig(network: keyof typeof chainIds): NetworkUserConfig 
   }
 }
 
+// --- Constants ---
+const chainIds = {
+  ganache: 1337,
+  goerli: 5,
+  hardhat: 31337,
+  kovan: 42,
+  mainnet: 1,
+  rinkeby: 4,
+  ropsten: 3,
+}
+
 const wethAddresses = {
   mainnet: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
   ropsten: '0xc778417E063141139Fce010982780140Aa0cD5Ab',
@@ -71,39 +73,73 @@ const wethAddresses = {
 
 const hasWETH = (network: string): network is keyof typeof wethAddresses => network in wethAddresses
 
-// --- Env ---
-const useLiveVersionEnv = (process.env.USE_LIVE_VERSION ?? 'false').toLowerCase()
-const useLiveVersion = !['false', 'no', '0'].includes(useLiveVersionEnv)
-
-// --- Deploy ---
-
-// -- Helpers --
-
-const getLiveArtifact = (name: string) => {
-  return { abi: [], bytecode: '' }
-}
-
-const getContractFactory: (
-  env: HardhatRuntimeEnvironment,
-) => (name: string, signer: Signer) => Promise<ContractFactory> = useLiveVersion
-  ? env => (name, signer) => {
-      const { abi, bytecode } = getLiveArtifact(name)
-      return env.ethers.getContractFactory(abi, bytecode, signer)
-    }
-  : env => env.ethers.getContractFactory
-
 // -- Hardhat Environment --
 
 const contractsVersion = 'beta.4'
+export type Signers = Signer | DefenderRelaySigner
+
+// - Config -
+
+interface DefenderConfig {
+  apiKey: string
+  apiSecret: string
+}
+
+interface HardhatDefenderConfig {
+  [chainId: number]: DefenderConfig | undefined
+}
+
+declare module 'hardhat/types/config' {
+  export interface HardhatUserConfig {
+    defender?: HardhatDefenderConfig
+  }
+
+  export interface HardhatConfig {
+    defender?: HardhatDefenderConfig
+  }
+}
+
+extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
+  const networks = userConfig.defender ? Object.keys(userConfig?.defender).map(network => +network) : []
+  const userDefender = userConfig.defender as HardhatDefenderConfig
+  const userDefenderConfig = (chainId: number) => userDefender[chainId] as DefenderConfig
+
+  if (networks.length > 0) {
+    networks.forEach(chainId => {
+      if (!userDefender || !userDefenderConfig(chainId).apiKey || !userDefenderConfig(chainId).apiSecret) {
+        const sampleConfig = JSON.stringify(
+          { defender: { [chainId]: { apiKey: 'YOUR_API_KEY', apiSecret: 'YOUR_API_SECRET' } } },
+          null,
+          2,
+        )
+        /* console.warn(
+          `Defender API key and secret are not set. Add the following to your hardhat.config.ts exported configuration:\n\n${sampleConfig}\n`,
+        ) */
+      }
+      if (typeof config.defender !== 'undefined') {
+        const user = userConfig.defender ?? {}
+        const hasKeys = user ? Object.entries(user) : undefined
+        if (hasKeys) {
+          config.defender = { ...config.defender, [chainId]: userDefender?.[chainId] as DefenderConfig }
+        }
+      } else {
+        config.defender = {}
+        config.defender = { ...config.defender, [chainId]: userDefender?.[chainId] as DefenderConfig }
+      }
+    })
+  }
+})
+
+// - Runtime -
 
 declare module 'hardhat/types/runtime' {
   interface HardhatRuntimeEnvironment {
-    deployRmm: (deployer: Signer, wethAddress: string, overrides?: Overrides) => Promise<_RmmDeploymentJSON>
+    deployRmm: (deployer: Signers, wethAddress: string, overrides?: Overrides) => Promise<_RmmDeploymentJSON>
   }
 }
 
 extendEnvironment((env: HardhatRuntimeEnvironment) => {
-  env.deployRmm = async (deployer: Signer, wethAddress, overrides?: Overrides) => {
+  env.deployRmm = async (deployer: Signers, wethAddress, overrides?: Overrides) => {
     const _isDev = env.network.name === 'dev'
     if (_isDev) setSilent(false)
     const deployment = await deployAndSetupContracts(deployer, _isDev, wethAddress, overrides)
@@ -111,22 +147,63 @@ extendEnvironment((env: HardhatRuntimeEnvironment) => {
   }
 })
 
-// -- Task --
+// -- Defender --
+
+const DEFENDER_ERROR = `Missing Defender API key and secret in hardhat config`
+
+const hasDefender = (hre: HardhatRuntimeEnvironment, chainId: number) =>
+  (hre.config.defender as HardhatDefenderConfig)[chainId]
+
+export function useRelayProvider(hre: HardhatRuntimeEnvironment, chainId: number) {
+  if (typeof hasDefender(hre, chainId) === 'undefined') throw new Error(DEFENDER_ERROR)
+  const config = (hre.config.defender as HardhatDefenderConfig)[chainId] as DefenderConfig
+  return new DefenderRelayProvider(config)
+}
+
+export function useRelaySigner(hre: HardhatRuntimeEnvironment, chainId: number) {
+  if (typeof hasDefender(hre, chainId) === 'undefined') throw new Error(DEFENDER_ERROR)
+  const provider = useRelayProvider(hre, chainId)
+  const config = (hre.config.defender as HardhatDefenderConfig)[chainId] as DefenderConfig
+  return new DefenderRelaySigner(config, provider, {
+    speed: 'fast',
+  })
+}
+
+subtask('useSigner', 'use the default signer or one at the signers index')
+  .addOptionalParam('i', 'signer index')
+  .setAction(async (args, hre) => {
+    const chainId = await hre.run('useChainId')
+    const isDefenderNetwork = hasDefender(hre, chainId)
+
+    let signer: any
+    if (isDefenderNetwork) signer = useRelaySigner(hre, chainId)
+    else if (args.i) signer = (await hre.ethers.getSigners())[args.i]
+    else [signer] = await hre.ethers.getSigners()
+
+    return signer
+  })
+
+// --- Deploy ---
 
 const defaultChannel = 'default'
 
 type DeployParams = {
+  defender: boolean
   channel: string
   gasPrice: number
   testweth?: string
 }
 
 task('deploy', 'Deploys the contracts to the network')
+  .addOptionalParam('defender', 'Use open zeppelin defender relay to deploy contracts.', undefined, types.boolean)
   .addOptionalParam('channel', 'Deployment channel to deploy info into', defaultChannel, types.string)
   .addOptionalParam('gasPrice', 'Price to pay for gas', undefined, types.float)
   .addOptionalParam('testweth', 'Only for testing! A test weth address', undefined, types.string)
-  .setAction(async ({ channel, gasPrice, testweth }: DeployParams, env) => {
-    const [deployer] = await env.ethers.getSigners()
+  .setAction(async ({ defender, channel, gasPrice, testweth }: DeployParams, env) => {
+    const chainId = +(await env.network.provider.send('eth_chainId'))
+    const [deployer] =
+      defender && hasDefender(env, chainId) ? [useRelaySigner(env, chainId)] : await env.ethers.getSigners()
+
     const overrides = { gasPrice: gasPrice && BigNumber.from(gasPrice).div(1000000000).toHexString() }
 
     let wethAddress: string | undefined = undefined
@@ -159,7 +236,7 @@ const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   networks: {
     dev: {
-      chainId: chainIds['ganache'], //1,
+      chainId: chainIds.ganache,
       url: 'http://127.0.0.1:8545',
       blockGasLimit: 12e6,
       gas: 12e6,
@@ -204,6 +281,28 @@ const config: HardhatUserConfig = {
   typechain: {
     outDir: 'typechain',
     target: 'ethers-v5',
+    externalArtifacts: [
+      'node_modules/@primitivefi/rmm-manager/artifacts/!(build-info)/!(test)/+([a-zA-Z0-9_]).json',
+      'node_modules/@primitivefi/rmm-core/artifacts/!(build-info)/!(test)/+([a-zA-Z0-9_]).json',
+    ],
+  },
+  defender: {
+    /*  [4]: {
+      apiKey: UNIVERSAL_RELAY_RINKEBY_API || '',
+      apiSecret: UNIVERSAL_RELAY_RINKEBY_SECRET || '',
+    },
+    [42]: {
+      apiKey: UNIVERSAL_RELAY_KOVAN_API || '',
+      apiSecret: UNIVERSAL_RELAY_KOVAN_SECRET || '',
+    }, */
+    4: {
+      apiKey: RELAY_RINKEBY_API || '',
+      apiSecret: RELAY_RINKEBY_SECRET || '',
+    },
+    42: {
+      apiKey: RELAY_KOVAN_API || '',
+      apiSecret: RELAY_KOVAN_SECRET || '',
+    },
   },
 }
 

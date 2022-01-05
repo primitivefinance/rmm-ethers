@@ -25,6 +25,7 @@ import { RemoveOptions } from '@primitivefi/rmm-sdk';
 import { SafeTransferOptions } from '@primitivefi/rmm-sdk';
 import { Signer } from '@ethersproject/abstract-signer';
 import { Signer as Signer_2 } from 'ethers';
+import { SwapOptions } from '@primitivefi/rmm-sdk';
 import { TransactionReceipt } from '@ethersproject/abstract-provider';
 import { TransactionRequest } from '@ethersproject/abstract-provider';
 import { TransactionResponse } from '@ethersproject/abstract-provider';
@@ -52,6 +53,21 @@ export const _connectToDeployment: (deployment: _RmmDeploymentJSON, signerOrProv
 export function _connectToNetwork(provider: EthersProvider, signer: EthersSigner | undefined, chainId: number): EthersRmmConnection;
 
 // @public
+export type EngineAddress = string;
+
+// @public
+export interface EngineCreationDetails {
+    engine: EngineAddress;
+    params: EngineCreationParams;
+}
+
+// @public
+export type EngineCreationParams = {
+    risky: string;
+    stable: string;
+};
+
+// @public
 export interface EthersCallOverrides {
     // (undocumented)
     blockTag?: BlockTag;
@@ -67,13 +83,9 @@ export type EthersProvider = Provider;
 export class EthersRmm implements ReadableEthersRmm {
     // @internal
     constructor(readable: ReadableEthersRmm);
-    // Warning: (ae-forgotten-export) The symbol "PositionAllocateParams" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "PositionAdjustmentDetails" needs to be exported by the entry point index.d.ts
     allocate(params: PositionAllocateParams, overrides?: EthersTransactionOverrides): Promise<PositionAdjustmentDetails>;
     static connect(signerOrProvider: Signer_2 | Provider): Promise<EthersRmm>;
     readonly connection: EthersRmmConnection;
-    // Warning: (ae-forgotten-export) The symbol "EngineCreationParams" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "EngineCreationDetails" needs to be exported by the entry point index.d.ts
     createEngine(params: EngineCreationParams, overrides?: EthersTransactionOverrides): Promise<EngineCreationDetails>;
     // Warning: (ae-unresolved-inheritdoc-reference) The @inheritDoc reference could not be resolved: No member was found with name "createPool"
     //
@@ -83,14 +95,10 @@ export class EthersRmm implements ReadableEthersRmm {
     static _from(connection: EthersRmmConnection): EthersRmm;
     getLiquidityBalance(poolId: string, address: string, overrides?: EthersCallOverrides): Promise<Wei>;
     getPool(poolId: string, overrides?: EthersCallOverrides): Promise<Pool>;
-    // Warning: (ae-forgotten-export) The symbol "Position" needs to be exported by the entry point index.d.ts
     getPosition(pool: Pool, address: string, overrides?: EthersCallOverrides): Promise<Position>;
     readonly populate: PopulatableEthersRmm;
-    // Warning: (ae-forgotten-export) The symbol "PositionRemoveParams" needs to be exported by the entry point index.d.ts
     remove(params: PositionRemoveParams, overrides?: EthersTransactionOverrides): Promise<PositionAdjustmentDetails>;
-    // Warning: (ae-forgotten-export) The symbol "PositionBatchTransferParams" needs to be exported by the entry point index.d.ts
     safeBatchTransfer(params: PositionBatchTransferParams, overrides?: EthersTransactionOverrides): Promise<void>;
-    // Warning: (ae-forgotten-export) The symbol "PositionTransferParams" needs to be exported by the entry point index.d.ts
     safeTransfer(params: PositionTransferParams, overrides?: EthersTransactionOverrides): Promise<void>;
     readonly send: SendableEthersRmm;
 }
@@ -116,8 +124,6 @@ export interface EthersRmmConnectionOptional {
 // @public
 export type EthersSigner = Signer;
 
-// Warning: (ae-forgotten-export) The symbol "TransactionFailedError" needs to be exported by the entry point index.d.ts
-//
 // @public
 export class EthersTransactionFailedError extends TransactionFailedError<FailedReceipt<EthersTransactionReceipt>> {
     constructor(message: string, failedReceipt: FailedReceipt<EthersTransactionReceipt>);
@@ -180,6 +186,11 @@ export type PendingReceipt = {
 // @internal (undocumented)
 export const _pendingReceipt: PendingReceipt;
 
+// @internal (undocumented)
+export type _PoolAction = {
+    pool: Pool;
+};
+
 // @beta
 export function poolify(raw: string): Pool;
 
@@ -220,6 +231,46 @@ export interface PopulatedRmmTransaction<P = unknown, T extends SentRmmTransacti
     send(): Promise<T>;
 }
 
+// @beta
+export class Position {
+    // @internal
+    constructor(pool: Pool, liquidity?: Wei);
+    add(that: Position): Position;
+    get balance0(): Wei;
+    get balance1(): Wei;
+    equals(that: Position): boolean;
+    get isEmpty(): boolean;
+    readonly liquidity: Wei;
+    readonly pool: Pool;
+    sub(that: Position): Position;
+    get totalValue(): Wei;
+    get value(): {
+        valuePerLiquidity: Wei;
+        values: Wei[];
+    };
+    valueOf(side: PoolSides): Wei;
+}
+
+// @public
+export interface PositionAdjustmentDetails {
+    createdPool?: boolean;
+    // Warning: (ae-incompatible-release-tags) The symbol "newPosition" is marked as @public, but its signature references "Position" which is marked as @beta
+    newPosition: Position;
+    params: PositionAllocateParams | PositionRemoveParams;
+}
+
+// Warning: (ae-incompatible-release-tags) The symbol "PositionAllocateParams" is marked as @public, but its signature references "_PoolAction" which is marked as @internal
+//
+// @public
+export type PositionAllocateParams<T = unknown> = _PoolAction & {
+    options: AllocateOptions;
+};
+
+// @public
+export type PositionBatchTransferParams = {
+    options: BatchTransferOptions;
+};
+
 // @internal (undocumented)
 export interface _PositionChange<T> {
     // (undocumented)
@@ -227,6 +278,18 @@ export interface _PositionChange<T> {
     // (undocumented)
     params: T;
 }
+
+// Warning: (ae-incompatible-release-tags) The symbol "PositionRemoveParams" is marked as @public, but its signature references "_PoolAction" which is marked as @internal
+//
+// @public
+export type PositionRemoveParams = _PoolAction & {
+    options: RemoveOptions;
+};
+
+// @public
+export type PositionTransferParams = {
+    options: SafeTransferOptions;
+};
 
 // @internal (undocumented)
 export enum _RawErrorReason {
@@ -379,6 +442,21 @@ export type SuccessfulReceipt<R = unknown, D = unknown> = {
 
 // @internal (undocumented)
 export const _successfulReceipt: <R, D>(rawReceipt: R, details: D, toString?: (() => string) | undefined) => SuccessfulReceipt<R, D>;
+
+// Warning: (ae-incompatible-release-tags) The symbol "SwapParams" is marked as @public, but its signature references "_PoolAction" which is marked as @internal
+//
+// @public
+export type SwapParams = _PoolAction & {
+    options: SwapOptions;
+};
+
+// @public
+export class TransactionFailedError<T extends FailedReceipt = FailedReceipt> extends Error {
+    // @internal
+    constructor(name: string, message: string, failedReceipt: T);
+    // (undocumented)
+    readonly failedReceipt: T;
+}
 
 // @public (undocumented)
 export interface _TypedLogDescription<T> extends Omit<LogDescription, 'args'> {

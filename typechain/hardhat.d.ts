@@ -28,6 +28,72 @@ declare module "hardhat/types/runtime" {
       name: "TestToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.TestToken__factory>;
+    getContractFactory(
+      name: "PositionDescriptor",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.PositionDescriptor__factory>;
+    getContractFactory(
+      name: "PositionRenderer",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.PositionRenderer__factory>;
+    getContractFactory(
+      name: "PrimitiveManager",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.PrimitiveManager__factory>;
+    getContractFactory(
+      name: "PrimitiveEngine",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.PrimitiveEngine__factory>;
+    getContractFactory(
+      name: "PrimitiveFactory",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.PrimitiveFactory__factory>;
+
+    getContractAt(
+      name: "AccessControl",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.AccessControl>;
+    getContractAt(
+      name: "ERC20",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ERC20>;
+    getContractAt(
+      name: "IERC20",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC20>;
+    getContractAt(
+      name: "TestToken",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.TestToken>;
+    getContractAt(
+      name: "PositionDescriptor",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.PositionDescriptor>;
+    getContractAt(
+      name: "PositionRenderer",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.PositionRenderer>;
+    getContractAt(
+      name: "PrimitiveManager",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.PrimitiveManager>;
+    getContractAt(
+      name: "PrimitiveEngine",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.PrimitiveEngine>;
+    getContractAt(
+      name: "PrimitiveFactory",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.PrimitiveFactory>;
 
     // default types
     getContractFactory(
@@ -39,5 +105,10 @@ declare module "hardhat/types/runtime" {
       bytecode: ethers.utils.BytesLike,
       signer?: ethers.Signer
     ): Promise<ethers.ContractFactory>;
+    getContractAt(
+      nameOrAbi: string | any[],
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<ethers.Contract>;
   }
 }
