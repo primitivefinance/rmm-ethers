@@ -52,7 +52,7 @@ export type EngineCreationParams = { risky: string; stable: string }
 /** Receipt details returned from a transaction adjusting a Position. */
 export interface PositionAdjustmentDetails {
   /** Parameters of allocate tx. */
-  params: PositionAllocateParams
+  params: PositionAllocateParams | PositionRemoveParams
 
   /** Updated state of the adjusted Position directly after the transaction. */
   newPosition: Position

@@ -1,7 +1,6 @@
 // --- Receipt Types ---
 
 import {
-  PositionAdjustmentDetails,
   EthersTransactionOverrides,
   EthersTransactionReceipt,
   EthersTransactionResponse,
@@ -9,8 +8,15 @@ import {
   PopulatedEthersSignerTransaction,
   SentEthersRmmTransaction,
 } from '.'
-import { PositionAllocateParams } from './Position'
-import { EngineCreationParams } from './TransactableRmm'
+import {
+  EngineCreationDetails,
+  EngineCreationParams,
+  PositionAdjustmentDetails,
+  PositionAllocateParams,
+  PositionBatchTransferParams,
+  PositionRemoveParams,
+  PositionTransferParams,
+} from './TransactableRmm'
 
 /**
  * Indicates that the transaction hasn't been mined yet.
@@ -141,11 +147,34 @@ export class SendableEthersRmm implements SendableRmm<EthersTransactionReceipt, 
     return this._populate.allocate(params, overrides).then(sendTransaction)
   }
 
+  /** Executes a remove liquidity transaction. */
+  async remove(
+    params: PositionRemoveParams,
+    overrides?: EthersTransactionOverrides,
+  ): Promise<SentEthersRmmTransaction<PositionAdjustmentDetails>> {
+    return this._populate.remove(params, overrides).then(sendTransaction)
+  }
+
+  /** Executes a remove liquidity transaction. */
+  async safeTransfer(
+    params: PositionTransferParams,
+    overrides?: EthersTransactionOverrides,
+  ): Promise<SentEthersRmmTransaction<void>> {
+    return this._populate.safeTransfer(params, overrides).then(sendTransaction)
+  }
+  /** Executes a remove liquidity transaction. */
+  async safeBatchTransfer(
+    params: PositionBatchTransferParams,
+    overrides?: EthersTransactionOverrides,
+  ): Promise<SentEthersRmmTransaction<void>> {
+    return this._populate.safeBatchTransfer(params, overrides).then(sendTransaction)
+  }
+
   /** Executes a deploy engine transaction from the primitive factory using the signer. */
-  async deploy(
+  async createEngine(
     params: EngineCreationParams,
     overrides?: EthersTransactionOverrides,
-  ): Promise<SentEthersRmmTransaction<DeployDetails>> {
-    return this._populate.deploy(params, overrides).then(sendTransaction)
+  ): Promise<SentEthersRmmTransaction<EngineCreationDetails>> {
+    return this._populate.createEngine(params, overrides).then(sendTransaction)
   }
 }

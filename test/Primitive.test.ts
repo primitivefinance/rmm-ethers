@@ -29,7 +29,8 @@ describe('RMM Ethers', () => {
 
   before(async () => {
     const [deployer] = await ethers.getSigners()
-    deployment = await deployRmm(deployer)
+    let wethAddress = deployer.address
+    deployment = await deployRmm(deployer, wethAddress)
 
     rmm = await connectToDeployment(deployment, deployer)
     expect(rmm).to.be.instanceOf(EthersRmm)
@@ -39,7 +40,7 @@ describe('RMM Ethers', () => {
     it('deploys engine', async function () {
       const [token0, token1] = await Promise.all([deployTestERC20(deployer), deployTestERC20(deployer)])
 
-      const engine = await rmm.deploy({ risky: token0.address, stable: token1.address })
+      const engine = await rmm.createEngine({ risky: token0.address, stable: token1.address })
       expect(engine).to.not.be.undefined
     })
   })

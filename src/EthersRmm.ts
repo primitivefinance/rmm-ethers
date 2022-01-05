@@ -17,6 +17,9 @@ import {
   TransactionFailedError,
   PositionAllocateParams,
   PositionAdjustmentDetails,
+  PositionTransferParams,
+  PositionBatchTransferParams,
+  PositionRemoveParams,
 } from './TransactableRmm'
 import { Pool } from '@primitivefi/rmm-sdk'
 import { Wei } from 'web3-units'
@@ -88,8 +91,20 @@ export class EthersRmm implements ReadableEthersRmm {
     return this.send.allocate(params, overrides).then(waitForSuccess)
   }
 
-  deploy(params: EngineCreationParams, overrides?: EthersTransactionOverrides): Promise<unknown> {
-    return this.send.deploy(params, overrides).then(waitForSuccess)
+  remove(params: PositionRemoveParams, overrides: EthersTransactionOverrides): Promise<PositionAdjustmentDetails> {
+    return this.send.remove(params, overrides).then(waitForSuccess)
+  }
+
+  safeTransfer(params: PositionTransferParams, overrides: EthersTransactionOverrides): Promise<void> {
+    return this.send.safeTransfer(params, overrides).then(waitForSuccess)
+  }
+
+  safeBatchTransfer(params: PositionBatchTransferParams, overrides: EthersTransactionOverrides): Promise<void> {
+    return this.send.safeBatchTransfer(params, overrides).then(waitForSuccess)
+  }
+
+  createEngine(params: EngineCreationParams, overrides?: EthersTransactionOverrides): Promise<unknown> {
+    return this.send.createEngine(params, overrides).then(waitForSuccess)
   }
 
   getPool(poolId: string, overrides?: any): Promise<Pool> {

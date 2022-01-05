@@ -1,7 +1,12 @@
 import { Signer } from '@ethersproject/abstract-signer'
 import { ContractTransaction, ContractFactory, Overrides } from '@ethersproject/contracts'
 import { Wallet } from '@ethersproject/wallet'
-
+import {
+  FactoryManager,
+  PeripheryManager,
+  PositionDescriptorManager,
+  PositionRendererManager,
+} from '@primitivefi/rmm-sdk'
 import { _RmmContractAddresses, _RmmContracts, _RmmDeploymentJSON, _connectToContracts } from '../src/contracts'
 
 let silent = true
@@ -45,31 +50,43 @@ const deployContract: (...p: Parameters<typeof deployContractAndGetBlockNumber>)
 const deployContracts = async (
   deployer: Signer,
   getContractFactory: (name: string, signer: Signer) => Promise<ContractFactory>,
+  wethAddress: string,
   overrides?: Overrides,
 ): Promise<[addresses: _RmmContractAddresses, startBlock: number]> => {
   const [primitiveFactory, startBlock] = await deployContractAndGetBlockNumber(
     deployer,
-    getContractFactory,
+    async (_, signer) => FactoryManager.getFactory(signer),
     'PrimitiveFactory',
     { ...overrides },
   )
-  const positionRenderer = await deployContract(deployer, getContractFactory, 'PositionRenderer', {
-    ...overrides,
-  })
+  const positionRenderer = await deployContract(
+    deployer,
+    async (_, signer) => PositionRendererManager.getFactory(signer),
+    'PositionRenderer',
+    {
+      ...overrides,
+    },
+  )
   const descriptorArgs = [positionRenderer]
   const positionDescriptor = await deployContract(
     deployer,
-    getContractFactory,
+    async (_, signer) => PositionDescriptorManager.getFactory(signer),
     'PositionDescriptor',
     ...descriptorArgs,
     {
       ...overrides,
     },
   )
-  const managerArgs = [primitiveFactory, positionDescriptor]
-  const primitiveManager = await deployContract(deployer, getContractFactory, 'PrimitiveManager', ...managerArgs, {
-    ...overrides,
-  })
+  const managerArgs = [primitiveFactory, wethAddress, positionDescriptor]
+  const primitiveManager = await deployContract(
+    deployer,
+    async (_, signer) => PeripheryManager.getFactory(signer),
+    'PrimitiveManager',
+    ...managerArgs,
+    {
+      ...overrides,
+    },
+  )
 
   const addresses = {
     primitiveFactory: primitiveFactory,
@@ -85,7 +102,7 @@ export const deployAndSetupContracts = async (
   deployer: Signer,
   getContractFactory: (name: string, signer: Signer) => Promise<ContractFactory>,
   _isDev = true,
-  wethAddress?: string,
+  wethAddress: string,
   overrides?: Overrides,
 ): Promise<_RmmDeploymentJSON> => {
   if (!deployer.provider) {
@@ -101,13 +118,15 @@ export const deployAndSetupContracts = async (
     deploymentDate: new Date().getTime(),
     _isDev,
 
-    ...(await deployContracts(deployer, getContractFactory, overrides).then(async ([addresses, startBlock]) => ({
-      startBlock,
+    ...(await deployContracts(deployer, getContractFactory, wethAddress, overrides).then(
+      async ([addresses, startBlock]) => ({
+        startBlock,
 
-      addresses: {
-        ...addresses,
-      },
-    }))),
+        addresses: {
+          ...addresses,
+        },
+      }),
+    )),
   }
 
   return {

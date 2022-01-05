@@ -64,6 +64,16 @@ function createTestnetConfig(network: keyof typeof chainIds): NetworkUserConfig 
   }
 }
 
+const wethAddresses = {
+  mainnet: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+  ropsten: '0xc778417E063141139Fce010982780140Aa0cD5Ab',
+  rinkeby: '0xc778417E063141139Fce010982780140Aa0cD5Ab',
+  goerli: '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6',
+  kovan: '0xd0A1E359811322d97991E03f863a0C30C2cF029C',
+}
+
+const hasWETH = (network: string): network is keyof typeof wethAddresses => network in wethAddresses
+
 // --- Env ---
 const useLiveVersionEnv = (process.env.USE_LIVE_VERSION ?? 'false').toLowerCase()
 const useLiveVersion = !['false', 'no', '0'].includes(useLiveVersionEnv)
@@ -84,6 +94,9 @@ const getContractFactory: (
       return env.ethers.getContractFactory(abi, bytecode, signer)
     }
   : env => env.ethers.getContractFactory
+
+export const getExternalArtifacts: (env: HardhatRuntimeEnvironment) => { artifacts: string }[] = env =>
+  env?.config?.external?.contracts ?? []
 
 // -- Hardhat Environment --
 
@@ -163,12 +176,12 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
 
 declare module 'hardhat/types/runtime' {
   interface HardhatRuntimeEnvironment {
-    deployRmm: (deployer: Signer, wethAddress?: string, overrides?: Overrides) => Promise<_RmmDeploymentJSON>
+    deployRmm: (deployer: Signer, wethAddress: string, overrides?: Overrides) => Promise<_RmmDeploymentJSON>
   }
 }
 
-extendEnvironment(env => {
-  env.deployRmm = async (deployer, wethAddress = undefined, overrides?: Overrides) => {
+extendEnvironment((env: HardhatRuntimeEnvironment) => {
+  env.deployRmm = async (deployer: Signer, wethAddress, overrides?: Overrides) => {
     const deployment = await deployAndSetupContracts(
       deployer,
       getContractFactory(env),
@@ -179,39 +192,6 @@ extendEnvironment(env => {
 
     return { ...deployment, version: contractsVersion }
   }
-
-  env.ethers = lazyObject(() => {
-    return {
-      ...env.ethers,
-      getContractFactory: async (name: string, signerOrOptions?: Signer | FactoryOptions | undefined) => {
-        const importPaths = []
-        if (env.config.external && env.config.external.contracts) {
-          for (const externalContracts of env.config.external.contracts) {
-            importPaths.push(externalContracts.artifacts)
-          }
-        }
-        let artifact
-        for (const importPath of importPaths) {
-          artifact = new Artifacts(importPath)
-          return await artifact.readArtifact(name)
-          /* if (artifact) {
-            return artifact as Artifact
-          } */
-        }
-
-        const { ContractFactory } = env.ethers
-        let signer = signerOrOptions instanceof Signer ? signerOrOptions : undefined
-        if (signer === undefined) {
-          const signers = await env.ethers.getSigners()
-          signer = signers[0]
-        }
-
-        const abiWithAddedGas = addGasToAbiMethodsIfNecessary(env.network.config, artifact.abi)
-
-        return new ContractFactory(abiWithAddedGas, bytecode, signer)
-      },
-    }
-  })
 })
 
 // -- Task --
@@ -231,6 +211,8 @@ task('deploy', 'Deploys the contracts to the network')
     const overrides = { gasPrice: gasPrice && BigNumber.from(gasPrice).div(1000000000).toHexString() }
 
     let wethAddress: string | undefined = undefined
+    wethAddress = hasWETH(env.network.name) ? wethAddresses[env.network.name] : undefined // to-do: fix!
+    if (typeof wethAddress === 'undefined') throw new Error('No weth address supplied')
 
     setSilent(false)
 
@@ -296,7 +278,7 @@ const config: HardhatUserConfig = {
         artifacts: 'node_modules/@primitivefi/rmm-core/artifacts',
       },
       {
-        artifacts: 'node_modules/@primitivefi/rmm-periphery/artifacts',
+        artifacts: 'node_modules/@primitivefi/rmm-manager/artifacts',
       },
     ],
   },

@@ -3,10 +3,10 @@ import { Transaction } from '@ethersproject/transactions'
 import { MethodParameters, PeripheryManager, FactoryManager } from '@primitivefi/rmm-sdk'
 import { Contract } from 'ethers'
 import { toBN } from 'web3-units'
-import { PositionAdjustmentDetails, EthersTransactionOverrides, EthersTransactionRequest, _getContracts } from '.'
+import { EthersTransactionOverrides, EthersTransactionRequest, _getContracts } from '.'
 
 import { EthersRmmConnection } from './EthersRmmConnection'
-import { PositionAllocateParams } from './Position'
+import { Position } from './Position'
 import { ReadableEthersRmm } from './ReadableEthersRmm'
 import {
   SentRmmTransaction,
@@ -16,7 +16,16 @@ import {
   _pendingReceipt,
   _successfulReceipt,
 } from './SendableEthersRmm'
-import { EngineCreationParams } from './TransactableRmm'
+import {
+  EngineCreationDetails,
+  EngineCreationParams,
+  PositionAdjustmentDetails,
+  PositionAllocateParams,
+  PositionBatchTransferParams,
+  PositionRemoveParams,
+  PositionTransferParams,
+  _PoolAction,
+} from './TransactableRmm'
 
 import { EthersPopulatedTransaction, EthersTransactionReceipt, EthersTransactionResponse } from './types'
 
@@ -213,14 +222,44 @@ export interface PopulatableRmm<R = unknown, S = unknown, P = unknown> {
    */
   allocate(
     params: PositionAllocateParams,
-  ): Promise<PopulatedRmmTransaction<P, SentRmmTransaction<S, RmmReceipt<PositionAdjustmentDetails>>>>
+  ): Promise<PopulatedRmmTransaction<P, SentRmmTransaction<S, RmmReceipt<R, PositionAdjustmentDetails>>>>
+
+  /**
+   *
+   * @param params Remove liquidity from pool and withdraws token
+   */
+  remove(
+    params: PositionRemoveParams,
+  ): Promise<PopulatedRmmTransaction<P, SentRmmTransaction<S, RmmReceipt<R, PositionAdjustmentDetails>>>>
+
+  /**
+   * Transfers liquidity to a `recipient` account.
+   */
+  safeTransfer(
+    params: PositionTransferParams,
+  ): Promise<PopulatedRmmTransaction<P, SentRmmTransaction<S, RmmReceipt<R, void>>>>
+
+  /**
+   * Transfers a batch of liquidity tokens to a `recipient` account.
+   */
+  safeBatchTransfer(
+    params: PositionBatchTransferParams,
+  ): Promise<PopulatedRmmTransaction<P, SentRmmTransaction<S, RmmReceipt<R, void>>>>
 
   /**
    * Deploys a new Engine contract
    *
    * @beta
    */
-  deploy(params: EngineCreationParams): Promise<PopulatedRmmTransaction<P, SentRmmTransaction<S, RmmReceipt<R>>>>
+  createEngine(
+    params: EngineCreationParams,
+  ): Promise<PopulatedRmmTransaction<P, SentRmmTransaction<S, RmmReceipt<R, EngineCreationDetails>>>>
+}
+
+/** @internal */
+export interface _PositionChange<T> {
+  params: T
+  newPosition: Position
 }
 
 /**
@@ -240,20 +279,21 @@ export class PopulatableEthersRmm
     this._readable = readable
   }
 
-  private _wrap(rawPopulatedTransaction: EthersPopulatedTransaction): PopulatedEthersRmmTransaction<void> {
-    return new PopulatedEthersRmmTransaction(rawPopulatedTransaction, this._readable.connection, () => undefined)
+  private _wrap<P>(rawPopulatedTransaction: P): PopulatedEthersSignerTransaction<void> {
+    return new PopulatedEthersSignerTransaction(rawPopulatedTransaction, this._readable.connection, () => undefined)
   }
 
   /** Gets PopulatedEthersSignerTransaction object and adds a parse function to use when receipt is received. */
-  private _wrapPositionChange<T, P>(
+  private _wrapPositionChange<T extends _PoolAction, P>(
     params: T,
     rawPopulatedTransaction: P,
-  ): PopulatedEthersSignerTransaction<PositionAdjustmentDetails> {
+  ): PopulatedEthersSignerTransaction<_PositionChange<T>> {
     const { primitiveManager } = _getContracts(this._readable.connection)
 
     return new PopulatedEthersSignerTransaction(rawPopulatedTransaction, this._readable.connection, ({ logs }) => {
       return {
-        poolId: 'yeee',
+        params,
+        newPosition: new Position(params.pool),
       }
     })
   }
@@ -306,11 +346,27 @@ export class PopulatableEthersRmm
     return this._wrapPositionChange(params, populated)
   }
 
+  /** Populates a remove liquidity transaction. */
+  async remove(
+    params: PositionRemoveParams,
+    overrides?: EthersTransactionOverrides,
+  ): Promise<PopulatedEthersSignerTransaction<PositionAdjustmentDetails>> {
+    const { primitiveFactory } = _getContracts(this._readable.connection)
+
+    const populated = await this._applyGasLimit(
+      primitiveFactory,
+      PeripheryManager.removeCallParameters(params.pool, params.options),
+      overrides,
+    )
+
+    return this._wrapPositionChange(params, populated)
+  }
+
   /** Deploys an Engine. */
-  async deploy(
+  async createEngine(
     params: EngineCreationParams,
     overrides?: EthersTransactionOverrides,
-  ): Promise<PopulatedEthersSignerTransaction<unknown>> {
+  ): Promise<PopulatedEthersSignerTransaction<EngineCreationDetails>> {
     const { primitiveFactory } = _getContracts(this._readable.connection)
 
     const populated = await this._applyGasLimit(
@@ -321,6 +377,44 @@ export class PopulatableEthersRmm
       },
       overrides,
     )
-    return this._wrapPositionChange(params, populated)
+
+    return new PopulatedEthersSignerTransaction(populated, this._readable.connection, ({ logs }) => {
+      return {
+        params,
+        engine: '',
+      }
+    })
+  }
+
+  /** Transfer liquidity. */
+  async safeTransfer(
+    params: PositionTransferParams,
+    overrides?: EthersTransactionOverrides,
+  ): Promise<PopulatedEthersSignerTransaction<void>> {
+    const { primitiveFactory } = _getContracts(this._readable.connection)
+
+    const populated = await this._applyGasLimit(
+      primitiveFactory,
+      PeripheryManager.safeTransferFromParameters(params.options),
+      overrides,
+    )
+
+    return this._wrap(populated)
+  }
+
+  /** Batch transfer liquidity positions. */
+  async safeBatchTransfer(
+    params: PositionBatchTransferParams,
+    overrides?: EthersTransactionOverrides,
+  ): Promise<PopulatedEthersSignerTransaction<void>> {
+    const { primitiveFactory } = _getContracts(this._readable.connection)
+
+    const populated = await this._applyGasLimit(
+      primitiveFactory,
+      PeripheryManager.batchTransferFromParameters(params.options),
+      overrides,
+    )
+
+    return this._wrap(populated)
   }
 }
