@@ -1,7 +1,5 @@
-import { task, HardhatUserConfig, types, extendEnvironment, extendConfig } from 'hardhat/config'
-import { Artifact, FactoryOptions, HardhatConfig, HardhatRuntimeEnvironment, NetworkUserConfig } from 'hardhat/types'
-import { lazyObject } from 'hardhat/plugins'
-import { Artifacts } from 'hardhat/internal/artifacts'
+import { task, HardhatUserConfig, types, extendEnvironment } from 'hardhat/config'
+import { HardhatRuntimeEnvironment, NetworkUserConfig } from 'hardhat/types'
 
 import { config as dotenvConfig } from 'dotenv'
 import path, { resolve } from 'path'
@@ -23,7 +21,6 @@ import 'hardhat/types/runtime'
 import { _RmmDeploymentJSON, _connectToContracts } from './src/contracts'
 import { deployAndSetupContracts, setSilent } from './utils/deploy'
 import { BigNumber } from 'ethers'
-import { artifacts } from 'hardhat'
 
 const chainIds = {
   ganache: 1337,
@@ -95,84 +92,9 @@ const getContractFactory: (
     }
   : env => env.ethers.getContractFactory
 
-export const getExternalArtifacts: (env: HardhatRuntimeEnvironment) => { artifacts: string }[] = env =>
-  env?.config?.external?.contracts ?? []
-
 // -- Hardhat Environment --
 
-function normalizePath(config: HardhatConfig, userPath: string | undefined, defaultPath: string): string {
-  if (userPath === undefined) {
-    userPath = path.join(config.paths.root, defaultPath)
-  } else {
-    if (!path.isAbsolute(userPath)) {
-      userPath = path.normalize(path.join(config.paths.root, userPath))
-    }
-  }
-  return userPath
-}
-
-function normalizePathArray(config: HardhatConfig, paths: string[]): string[] {
-  const newArray: string[] = []
-  for (const value of paths) {
-    if (value) {
-      newArray.push(normalizePath(config, value, value))
-    }
-  }
-  return newArray
-}
-
 const contractsVersion = 'beta.4'
-
-declare module 'hardhat/types/config' {
-  interface HardhatUserConfig {
-    external?: {
-      deployments?: {
-        [networkName: string]: string[]
-      }
-      contracts?: {
-        artifacts: string
-      }[]
-    }
-  }
-
-  interface HardhatConfig {
-    external?: {
-      deployments?: {
-        [networkName: string]: string[]
-      }
-      contracts?: {
-        artifacts: string
-      }[]
-    }
-  }
-}
-
-extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
-  if (userConfig.external) {
-    if (!config.external) {
-      config.external = {}
-    }
-    if (userConfig.external.contracts) {
-      const externalContracts: { artifacts: string }[] = []
-      config.external.contracts = externalContracts
-      for (const userDefinedExternalContracts of userConfig.external.contracts) {
-        externalContracts.push({
-          artifacts: normalizePath(
-            config,
-            userDefinedExternalContracts.artifacts,
-            userDefinedExternalContracts.artifacts,
-          ),
-        })
-      }
-    }
-    if (userConfig.external.deployments) {
-      config.external.deployments = {}
-      for (const key of Object.keys(userConfig.external.deployments)) {
-        config.external.deployments[key] = normalizePathArray(config, userConfig.external.deployments[key])
-      }
-    }
-  }
-})
 
 declare module 'hardhat/types/runtime' {
   interface HardhatRuntimeEnvironment {
@@ -182,14 +104,9 @@ declare module 'hardhat/types/runtime' {
 
 extendEnvironment((env: HardhatRuntimeEnvironment) => {
   env.deployRmm = async (deployer: Signer, wethAddress, overrides?: Overrides) => {
-    const deployment = await deployAndSetupContracts(
-      deployer,
-      getContractFactory(env),
-      env.network.name === 'dev',
-      wethAddress,
-      overrides,
-    )
-
+    const _isDev = env.network.name === 'dev'
+    if (_isDev) setSilent(false)
+    const deployment = await deployAndSetupContracts(deployer, _isDev, wethAddress, overrides)
     return { ...deployment, version: contractsVersion }
   }
 })
@@ -201,17 +118,20 @@ const defaultChannel = 'default'
 type DeployParams = {
   channel: string
   gasPrice: number
+  testweth?: string
 }
 
 task('deploy', 'Deploys the contracts to the network')
   .addOptionalParam('channel', 'Deployment channel to deploy info into', defaultChannel, types.string)
   .addOptionalParam('gasPrice', 'Price to pay for gas', undefined, types.float)
-  .setAction(async ({ channel, gasPrice }: DeployParams, env) => {
+  .addOptionalParam('testweth', 'Only for testing! A test weth address', undefined, types.string)
+  .setAction(async ({ channel, gasPrice, testweth }: DeployParams, env) => {
     const [deployer] = await env.ethers.getSigners()
     const overrides = { gasPrice: gasPrice && BigNumber.from(gasPrice).div(1000000000).toHexString() }
 
     let wethAddress: string | undefined = undefined
     wethAddress = hasWETH(env.network.name) ? wethAddresses[env.network.name] : undefined // to-do: fix!
+    wethAddress = env.network.name === 'dev' ? testweth : undefined
     if (typeof wethAddress === 'undefined') throw new Error('No weth address supplied')
 
     setSilent(false)
@@ -238,7 +158,20 @@ task('deploy', 'Deploys the contracts to the network')
 const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   networks: {
+    dev: {
+      chainId: chainIds['ganache'], //1,
+      url: 'http://127.0.0.1:8545',
+      blockGasLimit: 12e6,
+      gas: 12e6,
+    },
     hardhat: {
+      gas: 12e6, // tx gas limit
+      blockGasLimit: 12e6,
+
+      // Let Ethers throw instead of Hardhat EVM
+      // This is closer to what will happen in production
+      throwOnCallFailures: false,
+      throwOnTransactionFailures: false,
       accounts: {
         mnemonic: MNEMONIC,
       },
@@ -271,16 +204,6 @@ const config: HardhatUserConfig = {
   typechain: {
     outDir: 'typechain',
     target: 'ethers-v5',
-  },
-  external: {
-    contracts: [
-      {
-        artifacts: 'node_modules/@primitivefi/rmm-core/artifacts',
-      },
-      {
-        artifacts: 'node_modules/@primitivefi/rmm-manager/artifacts',
-      },
-    ],
   },
 }
 

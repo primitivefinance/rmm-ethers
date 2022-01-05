@@ -27,8 +27,10 @@ const deployContractAndGetBlockNumber = async (
   contractName: string,
   ...args: unknown[]
 ): Promise<[address: string, blockNumber: number]> => {
+  const factory = await getContractFactory(contractName, deployer)
+  log(`Got Factory`, ...args)
   log(`Deploying ${contractName} ...`)
-  const contract = await (await getContractFactory(contractName, deployer)).deploy(...args)
+  const contract = await factory.deploy(...args)
 
   log(`Waiting for transaction ${contract.deployTransaction.hash} ...`)
   const receipt = await contract.deployTransaction.wait()
@@ -49,7 +51,6 @@ const deployContract: (...p: Parameters<typeof deployContractAndGetBlockNumber>)
 
 const deployContracts = async (
   deployer: Signer,
-  getContractFactory: (name: string, signer: Signer) => Promise<ContractFactory>,
   wethAddress: string,
   overrides?: Overrides,
 ): Promise<[addresses: _RmmContractAddresses, startBlock: number]> => {
@@ -100,7 +101,6 @@ const deployContracts = async (
 
 export const deployAndSetupContracts = async (
   deployer: Signer,
-  getContractFactory: (name: string, signer: Signer) => Promise<ContractFactory>,
   _isDev = true,
   wethAddress: string,
   overrides?: Overrides,
@@ -118,15 +118,13 @@ export const deployAndSetupContracts = async (
     deploymentDate: new Date().getTime(),
     _isDev,
 
-    ...(await deployContracts(deployer, getContractFactory, wethAddress, overrides).then(
-      async ([addresses, startBlock]) => ({
-        startBlock,
+    ...(await deployContracts(deployer, wethAddress, overrides).then(async ([addresses, startBlock]) => ({
+      startBlock,
 
-        addresses: {
-          ...addresses,
-        },
-      }),
-    )),
+      addresses: {
+        ...addresses,
+      },
+    }))),
   }
 
   return {
