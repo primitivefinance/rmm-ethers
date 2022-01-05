@@ -20,6 +20,7 @@ import {
   PositionTransferParams,
   PositionBatchTransferParams,
   PositionRemoveParams,
+  EngineCreationDetails,
 } from './TransactableRmm'
 import { Pool } from '@primitivefi/rmm-sdk'
 import { Wei } from 'web3-units'
@@ -87,35 +88,43 @@ export class EthersRmm implements ReadableEthersRmm {
   /**
    * {@inheritdoc}
    */
-  allocate(params: PositionAllocateParams, overrides: EthersTransactionOverrides): Promise<PositionAdjustmentDetails> {
+  allocate(params: PositionAllocateParams, overrides?: EthersTransactionOverrides): Promise<PositionAdjustmentDetails> {
     return this.send.allocate(params, overrides).then(waitForSuccess)
   }
 
-  remove(params: PositionRemoveParams, overrides: EthersTransactionOverrides): Promise<PositionAdjustmentDetails> {
+  createPool(
+    params: PositionAllocateParams,
+    overrides?: EthersTransactionOverrides,
+  ): Promise<PositionAdjustmentDetails> {
+    if (!params.options.createPool) throw new Error('Attempting to create pool without flagging createPool.')
+    return this.send.allocate(params, overrides).then(waitForSuccess)
+  }
+
+  remove(params: PositionRemoveParams, overrides?: EthersTransactionOverrides): Promise<PositionAdjustmentDetails> {
     return this.send.remove(params, overrides).then(waitForSuccess)
   }
 
-  safeTransfer(params: PositionTransferParams, overrides: EthersTransactionOverrides): Promise<void> {
+  safeTransfer(params: PositionTransferParams, overrides?: EthersTransactionOverrides): Promise<void> {
     return this.send.safeTransfer(params, overrides).then(waitForSuccess)
   }
 
-  safeBatchTransfer(params: PositionBatchTransferParams, overrides: EthersTransactionOverrides): Promise<void> {
+  safeBatchTransfer(params: PositionBatchTransferParams, overrides?: EthersTransactionOverrides): Promise<void> {
     return this.send.safeBatchTransfer(params, overrides).then(waitForSuccess)
   }
 
-  createEngine(params: EngineCreationParams, overrides?: EthersTransactionOverrides): Promise<unknown> {
+  createEngine(params: EngineCreationParams, overrides?: EthersTransactionOverrides): Promise<EngineCreationDetails> {
     return this.send.createEngine(params, overrides).then(waitForSuccess)
   }
 
-  getPool(poolId: string, overrides?: any): Promise<Pool> {
+  getPool(poolId: string, overrides?: EthersTransactionOverrides): Promise<Pool> {
     return this._readable.getPool(poolId, overrides)
   }
 
-  getLiquidityBalance(poolId: string, address: string, overrides?: any): Promise<Wei> {
+  getLiquidityBalance(poolId: string, address: string, overrides?: EthersTransactionOverrides): Promise<Wei> {
     return this._readable.getLiquidityBalance(poolId, address, overrides)
   }
 
-  getPosition(pool: Pool, address: string, overrides?: any): Promise<Position> {
+  getPosition(pool: Pool, address: string, overrides?: EthersTransactionOverrides): Promise<Position> {
     return this._readable.getPosition(pool, address, overrides)
   }
 }

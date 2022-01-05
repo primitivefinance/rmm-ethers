@@ -1,6 +1,6 @@
 import { ErrorCode } from '@ethersproject/logger'
 import { Transaction } from '@ethersproject/transactions'
-import { MethodParameters, PeripheryManager, FactoryManager } from '@primitivefi/rmm-sdk'
+import { MethodParameters, PeripheryManager, FactoryManager, weiToWei } from '@primitivefi/rmm-sdk'
 import { Contract } from 'ethers'
 import { toBN } from 'web3-units'
 import { EthersTransactionOverrides, EthersTransactionRequest, _getContracts } from '.'
@@ -291,9 +291,23 @@ export class PopulatableEthersRmm
     const { primitiveManager } = _getContracts(this._readable.connection)
 
     return new PopulatedEthersSignerTransaction(rawPopulatedTransaction, this._readable.connection, ({ logs }) => {
+      let created = false
+
+      try {
+        ;[created] = primitiveManager
+          .extractEvents(logs, 'Create')
+          .map(({ args: { poolId } }) => poolId === params.pool.poolId)
+      } catch (e) {}
+
+      const [newPosition] = created
+        ? [new Position(params.pool)] // FIX!: no way to get new liquidity from created pool
+        : primitiveManager
+            .extractEvents(logs, 'Allocate')
+            .map(({ args: { delLiquidity } }) => new Position(params.pool, weiToWei(delLiquidity.toString())))
+
       return {
         params,
-        newPosition: new Position(params.pool),
+        newPosition,
       }
     })
   }
@@ -305,7 +319,7 @@ export class PopulatableEthersRmm
   ): Promise<EthersTransactionRequest> {
     // returns tx object with overrides applied, so we can use to get gas limit
     const tx = () => {
-      return { to: contract.address, ...txParams, ...overrides }
+      return { to: contract.address, data: txParams.calldata, value: txParams.value, ...overrides }
     }
 
     // gets gas limit, and updates overrides...
@@ -328,21 +342,12 @@ export class PopulatableEthersRmm
   ): Promise<PopulatedEthersSignerTransaction<PositionAdjustmentDetails>> {
     const { primitiveManager } = _getContracts(this._readable.connection)
 
-    // returns tx object with overrides applied, so we can use to get gas limit
-    const tx = () => {
-      return { ...PeripheryManager.allocateCallParameters(params.pool, params.options), ...overrides }
-    }
+    const populated = await this._applyGasLimit(
+      primitiveManager,
+      PeripheryManager.allocateCallParameters(params.pool, params.options),
+      overrides,
+    )
 
-    // gets gas limit, and updates overrides...
-    // therefore calling tx() will have the new gas limit
-    const prevTx = tx()
-    if (!prevTx.gasLimit) {
-      const gas = await primitiveManager.signer.estimateGas(prevTx)
-      const gasLimit = gas.mul(150).div(100)
-      overrides = { ...overrides, gasLimit }
-    }
-    const nextTx = tx()
-    const populated = await primitiveManager.signer.populateTransaction(nextTx)
     return this._wrapPositionChange(params, populated)
   }
 

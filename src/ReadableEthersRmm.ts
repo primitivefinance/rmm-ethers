@@ -14,7 +14,43 @@ export function parseTokenURI(uri: string) {
 }
 
 export function poolify(raw: string): Pool {
-  return Pool.from(parseTokenURI(raw))
+  const data = parseTokenURI(raw)
+  const {
+    factory,
+    riskyName,
+    riskySymbol,
+    riskyDecimals,
+    riskyAddress,
+    stableName,
+    stableSymbol,
+    stableDecimals,
+    stableAddress,
+    strike,
+    sigma,
+    gamma,
+    maturity,
+    lastTimestamp,
+    reserveRisky,
+    reserveStable,
+    liquidity,
+    invariant,
+    chainId,
+  } = data.properties
+
+  const risky = { address: riskyAddress, name: riskyName, symbol: riskySymbol, decimals: riskyDecimals }
+  const stable = { address: stableAddress, name: stableName, symbol: stableSymbol, decimals: stableDecimals }
+  const calibration = { strike, sigma, maturity, lastTimestamp, gamma }
+  const reserve = { reserveRisky, reserveStable, liquidity }
+  return new Pool(
+    chainId,
+    factory,
+    { ...risky },
+    { ...stable },
+    { ...calibration },
+    { ...reserve },
+    invariant,
+    undefined,
+  )
 }
 
 /**
@@ -61,7 +97,9 @@ export class ReadableEthersRmm implements ReadableRmm {
   getLiquidityBalance(poolId: string, address: string, overrides?: any): Promise<Wei> {
     const { primitiveManager } = _getContracts(this.connection)
 
-    return primitiveManager.balanceOf(address, poolId).then(weiToWei)
+    return primitiveManager
+      .balanceOf(address, poolId)
+      .then((bal: { toString: () => string }) => weiToWei(bal.toString()))
   }
 
   getPosition(pool: Pool, address: string, overrides?: any): Promise<Position> {

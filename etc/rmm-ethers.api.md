@@ -57,36 +57,37 @@ export class EthersRmm implements ReadableEthersRmm {
     // Warning: (ae-unresolved-inheritdoc-base) The @inheritDoc tag needs a TSDoc declaration reference; signature matching is not supported yet
     //
     // (undocumented)
-    allocate(params: PositionAllocateParams, overrides: EthersTransactionOverrides): Promise<PositionAdjustmentDetails>;
+    allocate(params: PositionAllocateParams, overrides?: EthersTransactionOverrides): Promise<PositionAdjustmentDetails>;
     static connect(signerOrProvider: Signer_2 | Provider): Promise<EthersRmm>;
     readonly connection: EthersRmmConnection;
     // Warning: (ae-forgotten-export) The symbol "EngineCreationParams" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "EngineCreationDetails" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    createEngine(params: EngineCreationParams, overrides?: EthersTransactionOverrides): Promise<unknown>;
+    createEngine(params: EngineCreationParams, overrides?: EthersTransactionOverrides): Promise<EngineCreationDetails>;
     // (undocumented)
     static _from(connection: EthersRmmConnection): EthersRmm;
     // (undocumented)
-    getLiquidityBalance(poolId: string, address: string, overrides?: any): Promise<Wei>;
+    getLiquidityBalance(poolId: string, address: string, overrides?: EthersTransactionOverrides): Promise<Wei>;
     // (undocumented)
-    getPool(poolId: string, overrides?: any): Promise<Pool>;
+    getPool(poolId: string, overrides?: EthersTransactionOverrides): Promise<Pool>;
     // Warning: (ae-forgotten-export) The symbol "Position" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    getPosition(pool: Pool, address: string, overrides?: any): Promise<Position>;
+    getPosition(pool: Pool, address: string, overrides?: EthersTransactionOverrides): Promise<Position>;
     readonly populate: PopulatableEthersRmm;
     // Warning: (ae-forgotten-export) The symbol "PositionRemoveParams" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    remove(params: PositionRemoveParams, overrides: EthersTransactionOverrides): Promise<PositionAdjustmentDetails>;
+    remove(params: PositionRemoveParams, overrides?: EthersTransactionOverrides): Promise<PositionAdjustmentDetails>;
     // Warning: (ae-forgotten-export) The symbol "PositionBatchTransferParams" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    safeBatchTransfer(params: PositionBatchTransferParams, overrides: EthersTransactionOverrides): Promise<void>;
+    safeBatchTransfer(params: PositionBatchTransferParams, overrides?: EthersTransactionOverrides): Promise<void>;
     // Warning: (ae-forgotten-export) The symbol "PositionTransferParams" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    safeTransfer(params: PositionTransferParams, overrides: EthersTransactionOverrides): Promise<void>;
+    safeTransfer(params: PositionTransferParams, overrides?: EthersTransactionOverrides): Promise<void>;
     readonly send: SendableEthersRmm;
 }
 
@@ -182,7 +183,6 @@ export function poolify(raw: string): Pool;
 export class PopulatableEthersRmm implements PopulatableRmm<EthersTransactionReceipt, EthersTransactionResponse, EthersTransactionRequest> {
     constructor(readable: ReadableEthersRmm);
     allocate(params: PositionAllocateParams, overrides?: EthersTransactionOverrides): Promise<PopulatedEthersSignerTransaction<PositionAdjustmentDetails>>;
-    // Warning: (ae-forgotten-export) The symbol "EngineCreationDetails" needs to be exported by the entry point index.d.ts
     createEngine(params: EngineCreationParams, overrides?: EthersTransactionOverrides): Promise<PopulatedEthersSignerTransaction<EngineCreationDetails>>;
     remove(params: PositionRemoveParams, overrides?: EthersTransactionOverrides): Promise<PopulatedEthersSignerTransaction<PositionAdjustmentDetails>>;
     safeBatchTransfer(params: PositionBatchTransferParams, overrides?: EthersTransactionOverrides): Promise<PopulatedEthersSignerTransaction<void>>;

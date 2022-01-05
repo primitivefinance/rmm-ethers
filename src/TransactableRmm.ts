@@ -56,6 +56,9 @@ export interface PositionAdjustmentDetails {
 
   /** Updated state of the adjusted Position directly after the transaction. */
   newPosition: Position
+
+  /** Flag to signal a pool was created. */
+  createdPool?: boolean
 }
 
 /** Aliased string to for Engine addresses. */

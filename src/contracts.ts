@@ -1,21 +1,100 @@
-import { Contract } from '@ethersproject/contracts'
+import { JsonFragment, LogDescription } from '@ethersproject/abi'
+import { Contract, ContractInterface } from '@ethersproject/contracts'
+import { Log } from '@ethersproject/abstract-provider'
+
+import { PrimitiveManager } from '@primitivefi/rmm-manager/typechain/PrimitiveManager'
+import { PositionRenderer } from '@primitivefi/rmm-manager/typechain/PositionRenderer'
+import { PositionDescriptor } from '@primitivefi/rmm-manager/typechain/PositionDescriptor'
+import { PrimitiveFactory } from '@primitivefi/rmm-core/typechain/PrimitiveFactory'
 
 import { EthersProvider, EthersSigner } from './types'
+import { BigNumber, EventFilter } from 'ethers'
+import {
+  FactoryManager,
+  PeripheryManager,
+  PositionDescriptorManager,
+  PositionRendererManager,
+} from '@primitivefi/rmm-sdk'
+
+export interface _TypedLogDescription<T> extends Omit<LogDescription, 'args'> {
+  args: T
+}
+
+export class _RmmContract extends Contract {
+  //readonly estimateAndPopulate: Record<string, EstimatedContractFunction<PopulatedTransaction>>
+
+  constructor(
+    addressOrName: string,
+    contractInterface: ContractInterface,
+    signerOrProvider?: EthersSigner | EthersProvider,
+  ) {
+    super(addressOrName, contractInterface, signerOrProvider)
+
+    //this.estimateAndPopulate = buildEstimatedFunctions(this.estimateGas, this.populateTransaction)
+  }
+
+  extractEvents(logs: Log[], name: string): _TypedLogDescription<unknown>[] {
+    return logs
+      .filter(log => log.address === this.address)
+      .map(log => this.interface.parseLog(log))
+      .filter(e => e.name === name)
+  }
+}
+
+const allocateEvent =
+  PeripheryManager.INTERFACE.events?.['Allocate(address,address,bytes32,uint256,uint256,uint256,bool)']
+
+export type _TypedRmmContract<T = unknown, U = unknown> = TypedContract<_RmmContract, T, U>
+
+type BucketOfFunctions = Record<string, (...args: unknown[]) => never>
+
+// Removes unsafe index signatures from an Ethers contract type
+export type _TypeSafeContract<T> = Pick<
+  T,
+  {
+    [P in keyof T]: BucketOfFunctions extends T[P] ? never : P
+  } extends {
+    [_ in keyof T]: infer U
+  }
+    ? U
+    : never
+>
+
+type TypedContract<T extends Contract, U, V> = _TypeSafeContract<T> & U & {}
+
+interface ManagerCalls {
+  /* uri(tokenId: string): Promise<string>
+  balanceOf(account: string, tokenId: string): Promise<BigNumber> */
+}
+
+interface ManagerTransactions {}
+
+interface ManagerContract extends _TypedRmmContract<PrimitiveManager> {
+  extractEvents(
+    logs: Log[],
+    name: 'Allocate',
+  ): _TypedLogDescription<{ poolId: string; delRisky: BigNumber; delStable: BigNumber; delLiquidity: BigNumber }>[]
+  extractEvents(logs: Log[], name: 'Create'): _TypedLogDescription<{ poolId: string }>[]
+}
+
+interface FactoryContract extends _TypedRmmContract<PrimitiveFactory> {
+  extractEvents(logs: Log[], name: 'DeployedEngine'): _TypedLogDescription<{ engine: string }>[]
+}
 
 /** @internal */
 export interface _RmmContracts {
-  primitiveFactory: Contract
-  primitiveManager: Contract
-  positionRenderer: Contract
-  positionDescriptor: Contract
+  primitiveFactory: FactoryContract
+  primitiveManager: ManagerContract
+  positionRenderer: _RmmContract
+  positionDescriptor: _RmmContract
 }
 
 /** @internal */
 export const _RmmContractAbis = {
-  primitiveFactory: [],
-  primitiveManager: [],
-  positionRenderer: [],
-  positionDescriptor: [],
+  primitiveFactory: FactoryManager.ABI,
+  primitiveManager: PeripheryManager.ABI,
+  positionRenderer: PositionRendererManager.ABI,
+  positionDescriptor: PositionDescriptorManager.ABI,
 }
 
 type RmmContractsKey = keyof _RmmContracts
@@ -46,6 +125,6 @@ export const _connectToContracts = (
 ): _RmmContracts => {
   return mapContracts(
     addresses,
-    (address, key) => new Contract(address, _RmmContractAbis[key], signerOrProvider),
+    (address, key) => new _RmmContract(address, _RmmContractAbis[key], signerOrProvider) as _TypedRmmContract,
   ) as _RmmContracts
 }

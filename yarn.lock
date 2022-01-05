@@ -700,10 +700,10 @@
     gaussian "^1.2.0"
     numeric "^1.2.6"
 
-"@primitivefi/rmm-sdk@^1.0.0-beta.5":
-  version "1.0.0-beta.5"
-  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-sdk/-/rmm-sdk-1.0.0-beta.5.tgz#185c2c0b4bedcc60a64fe873c1f6a5f3f5f35073"
-  integrity sha512-ZPXI27dxWkAn7sBgA8iwfvown7XP5BSZ56PA6F2FmaQJbgwbeclVr/YhzT9Xia1uCo552y55a0vzjJxWZcH1kQ==
+"@primitivefi/rmm-sdk@^1.0.1-beta.5":
+  version "1.0.1-beta.5"
+  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-sdk/-/rmm-sdk-1.0.1-beta.5.tgz#9be78cf31476e4eb57e6b888d79997c3d5a799bb"
+  integrity sha512-9T5Afn0OTWPQ7HU+juuLgl/C/rrQmhkduV1XPNEmjQbSmZTPwGqQYBKvYObabfQIWykiLmnp7DAxCeQgz3Vx9A==
   dependencies:
     "@primitivefi/rmm-core" "^2.0.0-beta.5"
     "@primitivefi/rmm-manager" "^2.0.0-beta.5"
