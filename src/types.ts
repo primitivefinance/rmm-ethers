@@ -1,4 +1,4 @@
-import { Provider } from '@ethersproject/abstract-provider'
+import { Provider, BlockTag } from '@ethersproject/abstract-provider'
 import { Signer } from '@ethersproject/abstract-signer'
 import { TransactionResponse, TransactionReceipt, TransactionRequest } from '@ethersproject/abstract-provider'
 import { PopulatedTransaction } from '@ethersproject/contracts'
@@ -64,4 +64,13 @@ export interface EthersTransactionOverrides {
   nonce?: number
   gasLimit?: BigNumber
   gasPrice?: BigNumber
+}
+
+/**
+ * Optional parameters taken by {@link ReadableEthersRmm} functions.
+ *
+ * @public
+ */
+export interface EthersCallOverrides {
+  blockTag?: BlockTag
 }

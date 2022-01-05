@@ -1,4 +1,4 @@
-import { JsonFragment, LogDescription } from '@ethersproject/abi'
+import { LogDescription } from '@ethersproject/abi'
 import { Contract, ContractInterface } from '@ethersproject/contracts'
 import { Log } from '@ethersproject/abstract-provider'
 
@@ -8,7 +8,7 @@ import { PositionDescriptor } from '@primitivefi/rmm-manager/typechain/PositionD
 import { PrimitiveFactory } from '@primitivefi/rmm-core/typechain/PrimitiveFactory'
 
 import { EthersProvider, EthersSigner } from './types'
-import { BigNumber, EventFilter } from 'ethers'
+import { BigNumber } from 'ethers'
 import {
   FactoryManager,
   PeripheryManager,
@@ -41,9 +41,6 @@ export class _RmmContract extends Contract {
   }
 }
 
-const allocateEvent =
-  PeripheryManager.INTERFACE.events?.['Allocate(address,address,bytes32,uint256,uint256,uint256,bool)']
-
 export type _TypedRmmContract<T = unknown, U = unknown> = TypedContract<_RmmContract, T, U>
 
 type BucketOfFunctions = Record<string, (...args: unknown[]) => never>
@@ -61,13 +58,6 @@ export type _TypeSafeContract<T> = Pick<
 >
 
 type TypedContract<T extends Contract, U, V> = _TypeSafeContract<T> & U & {}
-
-interface ManagerCalls {
-  /* uri(tokenId: string): Promise<string>
-  balanceOf(account: string, tokenId: string): Promise<BigNumber> */
-}
-
-interface ManagerTransactions {}
 
 interface ManagerContract extends _TypedRmmContract<PrimitiveManager> {
   extractEvents(
@@ -100,12 +90,15 @@ interface FactoryContract extends _TypedRmmContract<PrimitiveFactory> {
   extractEvents(logs: Log[], name: 'DeployedEngine'): _TypedLogDescription<{ engine: string }>[]
 }
 
+interface PositionRendererContract extends _TypedRmmContract<PositionRenderer> {}
+interface PositionDescriptorContract extends _TypedRmmContract<PositionDescriptor> {}
+
 /** @internal */
 export interface _RmmContracts {
   primitiveFactory: FactoryContract
   primitiveManager: ManagerContract
-  positionRenderer: _RmmContract
-  positionDescriptor: _RmmContract
+  positionRenderer: PositionRendererContract
+  positionDescriptor: PositionDescriptorContract
 }
 
 /** @internal */

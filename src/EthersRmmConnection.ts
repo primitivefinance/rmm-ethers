@@ -37,6 +37,7 @@ export interface _InternalEthersRmmConnection extends EthersRmmConnection {
   readonly _multicall?: any
 }
 
+/** Constructs an {@link _InternalEthersRmmConnection} entity from the contracts and deployment. */
 export const connectionFrom = (
   provider: EthersProvider,
   signer: EthersSigner | undefined,
@@ -104,6 +105,6 @@ export function _connectToNetwork(
 /** @internal */
 export const _connect = async (signerOrProvider: EthersSigner | EthersProvider) => {
   const [provider, signer] = getProviderAndSigner(signerOrProvider)
-
-  return _connectToNetwork(provider, signer, (await provider.getNetwork()).chainId)
+  const chainId = (await provider.getNetwork()).chainId
+  return _connectToNetwork(provider, signer, chainId)
 }

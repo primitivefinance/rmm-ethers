@@ -93,14 +93,14 @@ export const _successfulReceipt = <R, D>(
   ...(toString ? { toString } : {}),
 })
 
+const sendTransaction = <T>(tx: PopulatedEthersSignerTransaction<T>) => tx.send()
+
 /**
  * One of either a {@link PendingReceipt}, a {@link FailedReceipt} or a {@link SuccessfulReceipt}.
  *
  * @public
  */
 export type RmmReceipt<R = unknown, D = unknown> = PendingReceipt | MinedReceipt<R, D>
-
-// --- Interfaces ---
 
 export interface SentRmmTransaction<S = unknown, T extends RmmReceipt = RmmReceipt> {
   /** Implementable sent transaction object. */
@@ -122,10 +122,6 @@ export interface SentRmmTransaction<S = unknown, T extends RmmReceipt = RmmRecei
 }
 
 export interface SendableRmm<R = unknown, S = unknown> {}
-
-// --- Classes ---
-
-const sendTransaction = <T>(tx: PopulatedEthersSignerTransaction<T>) => tx.send()
 
 /**
  * Ethers implementation of {@link SendableRmm}

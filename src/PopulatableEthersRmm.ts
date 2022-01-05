@@ -27,7 +27,7 @@ import {
   _PoolAction,
 } from './TransactableRmm'
 
-import { EthersPopulatedTransaction, EthersTransactionReceipt, EthersTransactionResponse } from './types'
+import { EthersTransactionReceipt, EthersTransactionResponse } from './types'
 
 // --- Transaction Failed ---
 /** @internal */
@@ -54,22 +54,7 @@ const isTransactionFailedError = (error: Error): error is RawTransactionFailedEr
   hasProp(error, 'reason') &&
   error.reason === _RawErrorReason.TRANSACTION_FAILED
 
-// --- Populatable Ethers ---
-
-/** A ready to send transaction with generic types. */
-export interface PopulatedRmmTransaction<P = unknown, T extends SentRmmTransaction = SentRmmTransaction> {
-  /** Implementable populated transaction object. */
-  readonly rawPopulatedTransaction: P
-
-  /**
-   * Send the transaction.
-   *
-   * @returns An object that implements {@link SentRmmTransaction}
-   *
-   * @beta
-   */
-  send(): Promise<T>
-}
+// --- Sendable ---
 
 /**
  * Implements {@link SentRmmTransaction}
@@ -100,14 +85,16 @@ export class SentEthersRmmTransaction<T = unknown>
     this._parse = parse
   }
 
+  /** @internal */
   private _receiptFrom(rawReceipt: EthersTransactionReceipt | null) {
     return rawReceipt
       ? rawReceipt.status
-        ? _successfulReceipt(rawReceipt, this._parse(rawReceipt), () => '')
+        ? _successfulReceipt(rawReceipt, this._parse(rawReceipt), undefined)
         : _failedReceipt(rawReceipt)
       : _pendingReceipt
   }
 
+  /** @internal */
   private async _waitForRawReceipt(confirmations?: number) {
     try {
       return await this.rawSentTransaction.wait(confirmations)
@@ -133,40 +120,21 @@ export class SentEthersRmmTransaction<T = unknown>
   }
 }
 
-/**
- * Implements {@link PopulatedRmmTransaction}
- *
- * @remarks
- * Instantiates a populated transaction from a contract with a connection and method to parse its receipt info.
- *
- * @beta
- */
-export class PopulatedEthersRmmTransaction<P = unknown, T = unknown>
-  implements PopulatedRmmTransaction<EthersPopulatedTransaction, SentEthersRmmTransaction<T>>
-{
-  readonly rawPopulatedTransaction: EthersPopulatedTransaction
+// --- Populatable Ethers ---
 
-  private readonly _connection: EthersRmmConnection
-  private readonly _parse: (rawReceipt: EthersTransactionReceipt) => T
+/** A ready to send transaction with generic types. */
+export interface PopulatedRmmTransaction<P = unknown, T extends SentRmmTransaction = SentRmmTransaction> {
+  /** Implementable populated transaction object. */
+  readonly rawPopulatedTransaction: P
 
-  /** @internal */
-  constructor(
-    rawPopulatedTransaction: EthersPopulatedTransaction,
-    connection: EthersRmmConnection,
-    parse: (rawReceipt: EthersTransactionReceipt) => T,
-  ) {
-    this.rawPopulatedTransaction = rawPopulatedTransaction
-    this._connection = connection
-    this._parse = parse
-  }
-
-  async send(): Promise<SentEthersRmmTransaction<T>> {
-    return new SentEthersRmmTransaction(
-      await this._connection.signer.sendTransaction(this.rawPopulatedTransaction),
-      this._connection,
-      this._parse,
-    )
-  }
+  /**
+   * Send the transaction.
+   *
+   * @returns An object that implements {@link SentRmmTransaction}
+   *
+   * @beta
+   */
+  send(): Promise<T>
 }
 
 /**
@@ -174,6 +142,9 @@ export class PopulatedEthersRmmTransaction<P = unknown, T = unknown>
  *
  * @remarks
  * Instantiates a populated transaction from a signer.
+ * Important! This is by sending a raw tx directly from a signer, rather than a tx from a contract.
+ * For example, managerContract.populate.allocate() would return an EthersPopulatedTransaction, not an EthersTransactionRequest.
+ * Instead, this is doing signer.populate(rawAllocateTx), which returns an EthersTransactionRequest.
  *
  * @beta
  */
