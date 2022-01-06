@@ -1,6 +1,6 @@
 {
   "name": "@primitivefi/rmm-ethers",
-  "version": "0.0.4-beta.1",
+  "version": "0.0.5-beta.1",
   "description": "Primitive RMM Protocol ethers-based implementation.",
   "repository": {
     "type": "git",
