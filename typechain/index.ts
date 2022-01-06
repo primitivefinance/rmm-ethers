@@ -5,8 +5,18 @@ export type { AccessControl } from "./AccessControl";
 export type { ERC20 } from "./ERC20";
 export type { IERC20 } from "./IERC20";
 export type { TestToken } from "./TestToken";
+export type { PositionDescriptor } from "./PositionDescriptor";
+export type { PositionRenderer } from "./PositionRenderer";
+export type { PrimitiveManager } from "./PrimitiveManager";
+export type { PrimitiveEngine } from "./PrimitiveEngine";
+export type { PrimitiveFactory } from "./PrimitiveFactory";
 
 export { AccessControl__factory } from "./factories/AccessControl__factory";
 export { ERC20__factory } from "./factories/ERC20__factory";
 export { IERC20__factory } from "./factories/IERC20__factory";
 export { TestToken__factory } from "./factories/TestToken__factory";
+export { PositionDescriptor__factory } from "./factories/PositionDescriptor__factory";
+export { PositionRenderer__factory } from "./factories/PositionRenderer__factory";
+export { PrimitiveManager__factory } from "./factories/PrimitiveManager__factory";
+export { PrimitiveEngine__factory } from "./factories/PrimitiveEngine__factory";
+export { PrimitiveFactory__factory } from "./factories/PrimitiveFactory__factory";

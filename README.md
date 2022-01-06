@@ -1,16 +1,18 @@
-# Solidity Template
+# rmm-ethers
 
-Uses
+Inspired by Liquity Ethers.
 
-- [Hardhat](https://github.com/nomiclabs/hardhat): compile and run the smart contracts on a local development network
-- [TypeChain](https://github.com/ethereum-ts/TypeChain): generate TypeScript types for smart contracts
-- [Ethers](https://github.com/ethers-io/ethers.js/): renowned Ethereum library and wallet implementation
-- [Waffle](https://github.com/EthWorks/Waffle): tooling for writing comprehensive smart contract tests
-- [Solhint](https://github.com/protofire/solhint): linter
-- [Prettier Plugin Solidity](https://github.com/prettier-solidity/prettier-plugin-solidity): code formatter
+## Overview
 
-This is a GitHub template, which means you can reuse it as many times as you want. You can do that by clicking the "Use this
-template" button at the top of the page.
+![](diagram.png)
+
+1. User (frontend, connected user, etc.) calls a function in EthersRmm.ts
+2. EthersRmm calls into the SendableEthersRmm
+3. SendableEthersRmm calls into PopulatableEthersRmm
+4. PopulatableEthersRmm builds the transaction and packages it, sends it back to sendable
+5. Sendable broadcasts the transaction to the network, returning a SentEthersRmmTransaction to EthersRmm
+6. EthersRmm resolves the SentEthersRmmTransaction receipt, once a receipt exists
+7. EthersRmm returns the details of the receipt to the original user.
 
 ## Usage
 
@@ -37,24 +39,3 @@ Run the Mocha tests:
 ```sh
 $ yarn test
 ```
-
-### Deploy contract to netowrk (requires Mnemonic and infura API key)
-
-```
-npx hardhat run --network rinkeby ./scripts/deploy.ts
-```
-
-### Validate a contract with etherscan (requires API ke)
-
-```
-npx hardhat verify --network <network> <DEPLOYED_CONTRACT_ADDRESS> "Constructor argument 1"
-```
-
-### Added plugins
-
-- Gas reporter [hardhat-gas-reporter](https://hardhat.org/plugins/hardhat-gas-reporter.html)
-- Etherscan [hardhat-etherscan](https://hardhat.org/plugins/nomiclabs-hardhat-etherscan.html)
-
-## Thanks
-
-If you like it than you soulda put a start ⭐ on it 

@@ -5,8 +5,13 @@
     "strict": true,
     "esModuleInterop": true,
     "outDir": "dist",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationMap": true,
+    "downlevelIteration": true,
+    "lib": ["es2019"]
   },
-  "include": ["./scripts", "./test"],
+  "include": ["./scripts", "./test", "scripts", "src"],
   "files": ["./hardhat.config.ts"]
 }
