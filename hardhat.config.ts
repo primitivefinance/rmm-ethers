@@ -32,6 +32,8 @@ const {
   RELAY_KOVAN_API,
   RELAY_RINKEBY_SECRET,
   RELAY_RINKEBY_API,
+  RELAY_GOERLI_API,
+  RELAY_GOERLI_SECRET,
   UNIVERSAL_RELAY_KOVAN_SECRET,
   UNIVERSAL_RELAY_KOVAN_API,
   UNIVERSAL_RELAY_RINKEBY_SECRET,
@@ -73,9 +75,10 @@ const wethAddresses = {
 
 const hasWETH = (network: string): network is keyof typeof wethAddresses => network in wethAddresses
 
+const contractsVersion = fs.readFileSync(path.join('artifacts', 'version')).toString().trim()
+
 // -- Hardhat Environment --
 
-const contractsVersion = 'beta.4'
 export type Signers = Signer | DefenderRelaySigner
 
 // - Config -
@@ -296,11 +299,15 @@ const config: HardhatUserConfig = {
       apiKey: UNIVERSAL_RELAY_KOVAN_API || '',
       apiSecret: UNIVERSAL_RELAY_KOVAN_SECRET || '',
     }, */
-    4: {
+    [chainIds.goerli]: {
       apiKey: RELAY_RINKEBY_API || '',
       apiSecret: RELAY_RINKEBY_SECRET || '',
     },
-    42: {
+    [chainIds.rinkeby]: {
+      apiKey: RELAY_GOERLI_API || '',
+      apiSecret: RELAY_GOERLI_SECRET || '',
+    },
+    [chainIds.kovan]: {
       apiKey: RELAY_KOVAN_API || '',
       apiSecret: RELAY_KOVAN_SECRET || '',
     },
