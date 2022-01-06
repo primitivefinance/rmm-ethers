@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    tags-ignore:
+      - '**'
+    branches:
+      - 'main'
+      - 'develop'
+  pull_request:
+
+jobs:
+  lint-test:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check Out Git Repository
+        uses: actions/checkout@v2
+
+      - name: Set Up Node
+        uses: actions/setup-node@v2-beta
+        with:
+          node-version: '14.x'
+
+      - name: Install
+        run: yarn install --ignore-scripts
+
+      - name: Prepare
+        run: yarn prepare
+
+      - name: Test
+        run: yarn test

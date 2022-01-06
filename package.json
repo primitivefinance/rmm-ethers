@@ -27,6 +27,7 @@
     "deploy": "npx hardhat deploy",
     "prepare": "run-s prepare:*",
     "prepare:com": "hardhat compile",
+    "prepare:typ": "hardhat typechain",
     "prepare:tsc": "tsc --project tsconfig.production.json",
     "prepare:api": "api-extractor run --local",
     "prepare:set-version": "node scripts/set-version.js",
@@ -69,7 +70,7 @@
     "@openzeppelin/contracts": "^3.3.0",
     "defender-relay-client": "^1.12.1"
   },
-  "postinstall": "typechain",
+  "postinstall": "hardhat typechain",
   "release": {
     "branches": [
       "main"
