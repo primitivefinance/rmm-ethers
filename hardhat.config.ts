@@ -75,7 +75,13 @@ const wethAddresses = {
 
 const hasWETH = (network: string): network is keyof typeof wethAddresses => network in wethAddresses
 
-const contractsVersion = fs.readFileSync(path.join('artifacts', 'version')).toString().trim()
+const getContractsVersion = () => {
+  try {
+    return fs.readFileSync(path.join('artifacts', 'version')).toString().trim()
+  } catch (e) {
+    return 'unknown'
+  }
+}
 
 // -- Hardhat Environment --
 
@@ -146,7 +152,7 @@ extendEnvironment((env: HardhatRuntimeEnvironment) => {
     const _isDev = env.network.name === 'dev'
     if (_isDev) setSilent(false)
     const deployment = await deployAndSetupContracts(deployer, _isDev, wethAddress, overrides)
-    return { ...deployment, version: contractsVersion }
+    return { ...deployment, version: getContractsVersion() }
   }
 })
 

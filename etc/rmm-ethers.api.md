@@ -384,8 +384,10 @@ export interface _RmmDeploymentJSON {
 // @public
 export type RmmReceipt<R = unknown, D = unknown> = PendingReceipt | MinedReceipt<R, D>;
 
-// @public (undocumented)
+// @alpha
 export abstract class RmmStore<T = unknown> {
+    // @internal (undocumented)
+    protected abstract _doStart(): () => void;
     // (undocumented)
     protected _load(): void;
     // (undocumented)
@@ -394,11 +396,29 @@ export abstract class RmmStore<T = unknown> {
     logging: boolean;
     // (undocumented)
     onLoaded?: () => void;
+    // @internal (undocumented)
+    protected abstract _reduceExtra(extraState: T, extraStateUpdate: Partial<T>): T;
     start(): () => void;
-    subscribe(): () => void;
+    // @beta
+    get state(): RmmStoreState<T>;
+    subscribe(listener: (params: RmmStoreListenerParams<T>) => void): () => void;
+    // Warning: (ae-forgotten-export) The symbol "RmmBaseStoreState" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    protected _update(): void;
+    protected _update(baseStateUpdate?: Partial<RmmBaseStoreState>, extraStateUpdate?: Partial<T>): void;
 }
+
+// @public
+export interface RmmStoreListenerParams<T = unknown> {
+    newState: RmmStoreState<T>;
+    oldState: RmmStoreState<T>;
+    stateChange: Partial<RmmStoreState<T>>;
+}
+
+// Warning: (ae-forgotten-export) The symbol "RmmDerivedStoreState" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type RmmStoreState<T = unknown> = RmmBaseStoreState & RmmDerivedStoreState & T;
 
 // @beta
 export class SendableEthersRmm implements SendableRmm<EthersTransactionReceipt, EthersTransactionResponse> {

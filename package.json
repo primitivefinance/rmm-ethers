@@ -15,16 +15,15 @@
     "dist"
   ],
   "scripts": {
-    "build": "prepare",
-    "clean": "npx hardhat clean",
+    "build": "yarn prepare",
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "deploy": "npx hardhat deploy",
     "prepare": "run-s prepare:*",
-    "prepare:set-version": "node scripts/set-version.js",
-    "prepare:con": "run-s clean compile",
+    "prepare:com": "hardhat compile",
     "prepare:tsc": "tsc --project tsconfig.production.json",
     "prepare:api": "api-extractor run --local",
+    "prepare:set-version": "node scripts/set-version.js",
     "docs": "run-s docs:*",
     "docs:collect-apis": "node scripts/collect-api.js",
     "docs:api-documenter": "api-documenter generate -i temp/sdk-api -o docs/sdk"
