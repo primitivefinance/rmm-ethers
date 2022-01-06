@@ -1,6 +1,5 @@
 import { ethers, deployRmm } from 'hardhat'
 import chai from 'chai'
-import { solidity } from 'ethereum-waffle'
 import { BigNumber, Contract, Signer } from 'ethers'
 
 import { EthersRmm } from '../src/EthersRmm'
@@ -15,7 +14,6 @@ import { parseUnits } from 'ethers/lib/utils'
 
 const { MaxUint256 } = ethers.constants
 
-chai.use(solidity)
 const { expect } = chai
 
 const provider = ethers.provider

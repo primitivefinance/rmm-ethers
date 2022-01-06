@@ -9,6 +9,7 @@
     "declaration": true,
     "emitDeclarationOnly": true,
     "declarationMap": true,
+    "downlevelIteration": true,
     "lib": ["es2019"]
   },
   "include": ["./scripts", "./test", "scripts", "src"],
