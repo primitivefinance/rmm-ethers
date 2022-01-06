@@ -25,7 +25,7 @@ import { deployAndSetupContracts, setSilent } from './utils/deploy'
 const MNEMONIC = process.env.MNEMONIC || ''
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || ''
 const INFURA_API_KEY = process.env.INFURA_API_KEY || ''
-const ALCHEMY_KEY = process.env.ALCHEMY_KEY || ''
+//const ALCHEMY_KEY = process.env.ALCHEMY_KEY || ''
 
 const {
   RELAY_KOVAN_SECRET,
@@ -34,11 +34,15 @@ const {
   RELAY_RINKEBY_API,
   RELAY_GOERLI_API,
   RELAY_GOERLI_SECRET,
+} = process.env
+
+/* const {
+
   UNIVERSAL_RELAY_KOVAN_SECRET,
   UNIVERSAL_RELAY_KOVAN_API,
   UNIVERSAL_RELAY_RINKEBY_SECRET,
   UNIVERSAL_RELAY_RINKEBY_API,
-} = process.env
+} = process.env */
 
 function createTestnetConfig(network: keyof typeof chainIds): NetworkUserConfig {
   const url: string = 'https://' + network + '.infura.io/v3/' + INFURA_API_KEY
@@ -116,11 +120,11 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
   if (networks.length > 0) {
     networks.forEach(chainId => {
       if (!userDefender || !userDefenderConfig(chainId).apiKey || !userDefenderConfig(chainId).apiSecret) {
-        const sampleConfig = JSON.stringify(
+        /* const sampleConfig = JSON.stringify(
           { defender: { [chainId]: { apiKey: 'YOUR_API_KEY', apiSecret: 'YOUR_API_SECRET' } } },
           null,
           2,
-        )
+        ) */
         /* console.warn(
           `Defender API key and secret are not set. Add the following to your hardhat.config.ts exported configuration:\n\n${sampleConfig}\n`,
         ) */

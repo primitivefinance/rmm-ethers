@@ -15,6 +15,7 @@
   ],
   "main": "dist/index.js",
   "typings": "./dist/index.d.ts",
+  "module": "dist/rmm-ethers.esm.js",
   "files": [
     "dist",
     "README.md",
