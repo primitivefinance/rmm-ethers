@@ -10,6 +10,7 @@ import { PrimitiveFactory } from '@primitivefi/rmm-core/typechain/PrimitiveFacto
 import { EthersProvider, EthersSigner } from './types'
 import { BigNumber } from 'ethers'
 import {
+  Engine,
   FactoryManager,
   PeripheryManager,
   PositionDescriptorManager,
@@ -107,6 +108,7 @@ export const _RmmContractAbis = {
   primitiveManager: PeripheryManager.ABI,
   positionRenderer: PositionRendererManager.ABI,
   positionDescriptor: PositionDescriptorManager.ABI,
+  primitiveEngine: Engine.ABI,
 }
 
 type RmmContractsKey = keyof _RmmContracts
