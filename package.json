@@ -2,6 +2,11 @@
   "name": "@primitivefi/rmm-ethers",
   "version": "0.0.1-beta.1",
   "description": "Primitive RMM Protocol ethers-based implementation.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/primitivefinance/rmm-ethers.git"
+  },
+  "homepage": "https://primitive.finance",
   "keywords": [
     "Primitive",
     "rmm",
@@ -10,9 +15,10 @@
   ],
   "main": "dist/index.js",
   "typings": "./dist/index.d.ts",
-  "module": "dist/rmm-sdk.esm.js",
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "yarn prepare",
@@ -62,5 +68,11 @@
   "dependencies": {
     "@openzeppelin/contracts": "^3.3.0",
     "defender-relay-client": "^1.12.1"
+  },
+  "postinstall": "typechain",
+  "release": {
+    "branches": [
+      "main"
+    ]
   }
 }
