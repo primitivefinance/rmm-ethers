@@ -59,7 +59,7 @@ export const _getContracts = (connection: EthersRmmConnection): _RmmContracts =>
 
 const getProviderAndSigner = (
   signerOrProvider: EthersSigner | EthersProvider,
-): [provider: EthersProvider, signer: EthersSigner | undefined] => {
+): [EthersProvider, EthersSigner | undefined] => {
   if (Signer.isSigner(signerOrProvider)) {
     if (!signerOrProvider?.provider) throw new Error('No provider')
     return [signerOrProvider.provider, signerOrProvider]
@@ -72,12 +72,10 @@ const getProviderAndSigner = (
 export const _connectToDeployment = (
   deployment: _RmmDeploymentJSON,
   signerOrProvider: EthersSigner | EthersProvider,
-): EthersRmmConnection =>
-  connectionFrom(
-    ...getProviderAndSigner(signerOrProvider),
-    _connectToContracts(signerOrProvider, deployment),
-    deployment,
-  )
+): EthersRmmConnection => {
+  const [provider, signer] = getProviderAndSigner(signerOrProvider)
+  return connectionFrom(provider, signer, _connectToContracts(signerOrProvider, deployment), deployment)
+}
 
 type EthersRmmStoreOption = 'default'
 

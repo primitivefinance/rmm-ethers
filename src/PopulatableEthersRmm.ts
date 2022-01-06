@@ -98,7 +98,7 @@ export class SentEthersRmmTransaction<T = unknown>
   private async _waitForRawReceipt(confirmations?: number) {
     try {
       return await this.rawSentTransaction.wait(confirmations)
-    } catch (error: unknown) {
+    } catch (error) {
       if (error instanceof Error) {
         if (isTransactionFailedError(error)) {
           return error.receipt
@@ -300,8 +300,8 @@ export class PopulatableEthersRmm
 
     // gets gas limit, and updates overrides...
     // therefore calling tx() will have the new gas limit
-    const prevTx = tx()
-    if (!prevTx.gasLimit) {
+    const prevTx = tx() as EthersTransactionRequest
+    if (!prevTx?.gasLimit) {
       const gas = await contract.signer.estimateGas(prevTx)
       const gasLimit = gas.mul(150).div(100)
       overrides = { ...overrides, gasLimit }
