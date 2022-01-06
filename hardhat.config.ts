@@ -195,7 +195,7 @@ type DeployParams = {
 }
 
 task('deploy', 'Deploys the contracts to the network')
-  .addOptionalParam('defender', 'Use open zeppelin defender relay to deploy contracts.', undefined, types.boolean)
+  .addFlag('defender', 'Use open zeppelin defender relay to deploy contracts.')
   .addOptionalParam('channel', 'Deployment channel to deploy info into', defaultChannel, types.string)
   .addOptionalParam('gasPrice', 'Price to pay for gas', undefined, types.float)
   .addOptionalParam('testweth', 'Only for testing! A test weth address', undefined, types.string)
@@ -206,13 +206,14 @@ task('deploy', 'Deploys the contracts to the network')
 
     const overrides = { gasPrice: gasPrice && BigNumber.from(gasPrice).div(1000000000).toHexString() }
 
-    let wethAddress: string | undefined = undefined
-    wethAddress = hasWETH(env.network.name) ? wethAddresses[env.network.name] : undefined // to-do: fix!
-    wethAddress = env.network.name === 'dev' ? testweth : undefined
+    const wethAddress: string | undefined =
+      env.network.name === 'dev' ? testweth : hasWETH(env.network.name) ? wethAddresses[env.network.name] : undefined // to-do: fix!
+
     if (typeof wethAddress === 'undefined') throw new Error('No weth address supplied')
 
     setSilent(false)
 
+    console.log(` - Deploying from: ${await deployer.getAddress()}`)
     const deployment = await env.deployRmm(deployer, wethAddress, overrides)
 
     fs.mkdirSync(path.join('deployments', channel), { recursive: true })

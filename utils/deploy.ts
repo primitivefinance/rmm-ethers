@@ -1,6 +1,5 @@
 import { Signer } from '@ethersproject/abstract-signer'
-import { ContractTransaction, ContractFactory, Overrides } from '@ethersproject/contracts'
-import { Wallet } from '@ethersproject/wallet'
+import { ContractFactory, Overrides } from '@ethersproject/contracts'
 import {
   FactoryManager,
   PeripheryManager,
@@ -28,7 +27,6 @@ const deployContractAndGetBlockNumber = async (
   ...args: unknown[]
 ): Promise<[address: string, blockNumber: number]> => {
   const factory = await getContractFactory(contractName, deployer)
-  log(`Got Factory`, ...args)
   log(`Deploying ${contractName} ...`)
   const contract = await factory.deploy(...args)
 

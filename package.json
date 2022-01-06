@@ -15,10 +15,11 @@
     "dist"
   ],
   "scripts": {
-    "build": "run-s prepare",
+    "build": "prepare",
     "clean": "npx hardhat clean",
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
+    "deploy": "npx hardhat deploy",
     "prepare": "run-s prepare:*",
     "prepare:con": "run-s clean compile",
     "prepare:tsc": "tsc --project tsconfig.production.json",
