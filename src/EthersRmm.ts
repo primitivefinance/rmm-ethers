@@ -5,6 +5,7 @@ import { SendableEthersRmm } from './SendableEthersRmm'
 import { Provider } from '@ethersproject/abstract-provider'
 import { Signer } from 'ethers'
 import {
+  EngineAddress,
   EthersCallOverrides,
   EthersTransactionOverrides,
   EthersTransactionReceipt,
@@ -135,5 +136,10 @@ export class EthersRmm implements ReadableEthersRmm {
   /** {@inheritdoc ReadableRmm.getPosition} */
   getPosition(pool: Pool, address: string, overrides?: EthersCallOverrides): Promise<Position> {
     return this._readable.getPosition(pool, address, overrides)
+  }
+
+  /** {@inheritdoc ReadableRmm.getEngine} */
+  getEngine(riskyAddress: string, stableAddress: string, overrides?: EthersCallOverrides): Promise<EngineAddress> {
+    return this._readable.getEngine(riskyAddress, stableAddress, overrides)
   }
 }

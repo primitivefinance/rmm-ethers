@@ -185,7 +185,7 @@ export function useRelaySigner(hre: HardhatRuntimeEnvironment, chainId: number) 
 subtask('useSigner', 'use the default signer or one at the signers index')
   .addOptionalParam('i', 'signer index')
   .setAction(async (args, hre) => {
-    const chainId = await hre.run('useChainId')
+    const chainId = +(await hre.network.provider.send('eth_chainId'))
     const isDefenderNetwork = hasDefender(hre, chainId)
 
     let signer: any
@@ -219,8 +219,13 @@ task('deploy', 'Deploys the contracts to the network')
 
     const overrides = { gasPrice: gasPrice && BigNumber.from(gasPrice).div(1000000000).toHexString() }
 
+    const defaultTestWeth = '0x0000000000000000000000000000000000000001'
     const wethAddress: string | undefined =
-      env.network.name === 'dev' ? testweth : hasWETH(env.network.name) ? wethAddresses[env.network.name] : undefined // to-do: fix!
+      env.network.name === 'dev'
+        ? testweth ?? defaultTestWeth
+        : hasWETH(env.network.name)
+        ? wethAddresses[env.network.name]
+        : undefined // to-do: fix!
 
     if (typeof wethAddress === 'undefined') throw new Error('No weth address supplied')
 
@@ -309,11 +314,11 @@ const config: HardhatUserConfig = {
       apiKey: UNIVERSAL_RELAY_KOVAN_API || '',
       apiSecret: UNIVERSAL_RELAY_KOVAN_SECRET || '',
     }, */
-    [chainIds.goerli]: {
+    [chainIds.rinkeby]: {
       apiKey: RELAY_RINKEBY_API || '',
       apiSecret: RELAY_RINKEBY_SECRET || '',
     },
-    [chainIds.rinkeby]: {
+    [chainIds.goerli]: {
       apiKey: RELAY_GOERLI_API || '',
       apiSecret: RELAY_GOERLI_SECRET || '',
     },

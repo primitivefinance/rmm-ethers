@@ -93,6 +93,7 @@ export class EthersRmm implements ReadableEthersRmm {
     createPool(params: PositionAllocateParams, overrides?: EthersTransactionOverrides): Promise<PositionAdjustmentDetails>;
     // (undocumented)
     static _from(connection: EthersRmmConnection): EthersRmm;
+    getEngine(riskyAddress: string, stableAddress: string, overrides?: EthersCallOverrides): Promise<EngineAddress>;
     getLiquidityBalance(poolId: string, address: string, overrides?: EthersCallOverrides): Promise<Wei>;
     getPool(poolId: string, overrides?: EthersCallOverrides): Promise<Pool>;
     getPosition(pool: Pool, address: string, overrides?: EthersCallOverrides): Promise<Position>;
@@ -312,6 +313,7 @@ export class ReadableEthersRmm implements ReadableRmm {
     readonly connection: EthersRmmConnection;
     // @internal (undocumented)
     static _from(connection: EthersRmmConnection): ReadableEthersRmm;
+    getEngine(riskyAddress: string, stableAddress: string, overrides?: EthersCallOverrides): Promise<EngineAddress>;
     getLiquidityBalance(poolId: string, address: string, overrides?: EthersCallOverrides): Promise<Wei>;
     getPool(poolId: string, overrides?: EthersCallOverrides): Promise<Pool>;
     getPosition(pool: Pool, address: string, overrides?: EthersCallOverrides): Promise<Position>;
@@ -320,6 +322,7 @@ export class ReadableEthersRmm implements ReadableRmm {
 // @beta
 export interface ReadableRmm {
     readonly connection: EthersRmmConnection;
+    getEngine(riskyAddress: string, stableAddress: string, overrides?: EthersCallOverrides): Promise<EngineAddress>;
     getLiquidityBalance(poolId: string, address: string, overrides?: EthersCallOverrides): Promise<Wei>;
     getPool(poolId: string, overrides?: EthersCallOverrides): Promise<Pool>;
     getPosition(pool: Pool, address: string, overrides?: EthersCallOverrides): Promise<Position>;
@@ -338,6 +341,7 @@ export const _RmmContractAbis: {
     primitiveManager: any[];
     positionRenderer: any[];
     positionDescriptor: any[];
+    primitiveEngine: any;
 };
 
 // Warning: (ae-forgotten-export) The symbol "RmmContractsKey" needs to be exported by the entry point index.d.ts

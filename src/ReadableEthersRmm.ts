@@ -1,6 +1,15 @@
 import { Pool, weiToWei } from '@primitivefi/rmm-sdk'
+import { getAddress } from 'ethers/lib/utils'
 import { Wei } from 'web3-units'
-import { EthersCallOverrides, EthersProvider, EthersRmmConnection, EthersSigner, _connect, _getContracts } from '.'
+import {
+  EngineAddress,
+  EthersCallOverrides,
+  EthersProvider,
+  EthersRmmConnection,
+  EthersSigner,
+  _connect,
+  _getContracts,
+} from '.'
 import { Position } from './Position'
 import { poolify } from './utils'
 
@@ -21,6 +30,9 @@ export interface ReadableRmm {
 
   /** Constructs a {@link Position} entity from a Pool entity and by fetching the `account`'s balance of liquidity. */
   getPosition(pool: Pool, address: string, overrides?: EthersCallOverrides): Promise<Position>
+
+  /** Gets an Engine address from calling the Primitive Factory. */
+  getEngine(riskyAddress: string, stableAddress: string, overrides?: EthersCallOverrides): Promise<EngineAddress>
 }
 
 /**
@@ -70,5 +82,13 @@ export class ReadableEthersRmm implements ReadableRmm {
   /** {@inheritdoc ReadableRmm.getPosition} */
   getPosition(pool: Pool, address: string, overrides?: EthersCallOverrides): Promise<Position> {
     return this.getLiquidityBalance(pool.poolId, address, overrides).then(val => new Position(pool, val))
+  }
+
+  /** {@inheritdoc ReadableRmm.getEngine} */
+  getEngine(riskyAddress: string, stableAddress: string, overrides?: EthersCallOverrides): Promise<EngineAddress> {
+    const { primitiveFactory } = _getContracts(this.connection)
+    return primitiveFactory
+      .getEngine(getAddress(riskyAddress), getAddress(stableAddress))
+      .then(val => val as EngineAddress)
   }
 }
