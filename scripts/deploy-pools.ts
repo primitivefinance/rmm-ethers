@@ -14,9 +14,9 @@ import { getAddress } from 'ethers/lib/utils'
 
 const POOL_DEPLOYMENTS_SAVE = path.join('./deployments', 'default', 'pools.json')
 
-export const DEFAULT_MATURITY = 1641974122 // Wed Jan 12 2022 07:55:22 GMT+0000
-export const DEFAULT_GAMMA = 0.99
-export const POOL = {
+const DEFAULT_MATURITY = 1641974122 // Wed Jan 12 2022 07:55:22 GMT+0000
+const DEFAULT_GAMMA = 0.99
+const POOL = {
   name: 'yveCRV-DAO',
   spot: 2.46,
   pools: [
@@ -33,7 +33,7 @@ interface IAggregatedPools {
   vecrv: typeof POOL
 }
 
-export const AGGREGATED_POOLS: IAggregatedPools = {
+const AGGREGATED_POOLS: IAggregatedPools = {
   vecrv: POOL,
 }
 
@@ -49,18 +49,12 @@ interface IPoolDeploymentsJSON {
   pools: PoolDeployments
 }
 
-export function getEngineSymbol(symbols: string[]): string {
+function getEngineSymbol(symbols: string[]): string {
   const name = `RMM-LP-${symbols[0]}/${symbols[1]}`
   return name
 }
 
-export function getPoolSymbol(
-  symbols: string[],
-  strike: number,
-  sigma: number,
-  maturity: number,
-  gamma: number,
-): string {
+function getPoolSymbol(symbols: string[], strike: number, sigma: number, maturity: number, gamma: number): string {
   const name = `${getEngineSymbol(symbols)}-${strike}-${sigma}-${maturity}-${gamma}`
   return name
 }
@@ -80,17 +74,24 @@ async function getPoolTokensFromDeployment(
 
 type CalibrationType = { strike: string; sigma: string; maturity: string; gamma: string }
 
-export async function getEngineOrDeployEngine(
-  rmm: EthersRmm,
-  riskyToken: Contract,
-  stableToken: Contract,
-): Promise<Contract> {
-  let engineAddress = await rmm.getEngine(riskyToken.address, stableToken.address)
+async function getEngineOrDeployEngine(rmm: EthersRmm, riskyToken: Contract, stableToken: Contract): Promise<Contract> {
+  let engineAddress: string = AddressZero
+
+  try {
+    engineAddress = await rmm.getEngine(riskyToken.address, stableToken.address)
+  } catch (e) {}
+
   if (engineAddress === AddressZero) {
     console.log('     Deploying engine!')
     const details = await rmm.createEngine({ risky: riskyToken.address, stable: stableToken.address })
-    engineAddress = details?.engine ?? (await rmm.getEngine(riskyToken.address, stableToken.address))
+    try {
+      engineAddress = await rmm.getEngine(riskyToken.address, stableToken.address)
+    } catch (e) {}
+
+    engineAddress = details?.engine
   }
+
+  if (engineAddress === AddressZero) throw new Error('Zero address on engine')
   let engine: Contract = new Contract(engineAddress, _RmmContractAbis.primitiveEngine, rmm.connection.signer)
   return engine
 }
@@ -141,6 +142,20 @@ const fn = async () => {
     const risky = { address: riskyToken.address, decimals: rMetadata[0], name: rMetadata[1], symbol: rMetadata[2] }
     const stable = { address: stableToken.address, decimals: sMetadata[0], name: sMetadata[1], symbol: sMetadata[2] }
 
+    // load pool tokens
+    const loadedDeployment = (await readLog(chainId, poolConfig.name, POOL_DEPLOYMENTS_SAVE)) as IPoolDeploymentsJSON
+    const preDeployment: IPoolDeploymentsJSON = {
+      name: poolConfig.name,
+      risky,
+      stable,
+      pools: { ...loadedDeployment?.pools },
+    }
+    if (
+      (loadedDeployment?.name && preDeployment?.name && preDeployment?.name !== loadedDeployment?.name) ||
+      (loadedDeployment?.risky && preDeployment?.risky && preDeployment.risky.name !== loadedDeployment.risky.name)
+    ) {
+      await updateLog(chainId, poolConfig.name, preDeployment, POOL_DEPLOYMENTS_SAVE)
+    }
     // Get engine, or deploy an engine
 
     let engine: Contract = await getEngineOrDeployEngine(rmm, riskyToken, stableToken)
@@ -197,7 +212,6 @@ const fn = async () => {
     console.log('   Creating pools')
 
     let poolDeployments: PoolDeployments = {}
-    const loadedDeployment = (await readLog(chainId, poolConfig.name, POOL_DEPLOYMENTS_SAVE)) as IPoolDeploymentsJSON
 
     for (let i = 0; i < poolEntities.length; i++) {
       // mint test tokens if our balance gets low
@@ -239,14 +253,18 @@ const fn = async () => {
             Object.keys(options).map((key: string) => [key, options?.[key as keyof AllocateOptions]?.toString()]),
           )
 
-        const {
-          newPosition: {
-            pool: { poolId },
-          },
-        } = await rmm.createPool({
-          pool,
-          options,
-        })
+        try {
+          const {
+            newPosition: {
+              pool: { poolId },
+            },
+          } = await rmm.createPool({
+            pool,
+            options,
+          })
+        } catch (e) {
+          console.log(`Failed to create pool!`, e?.code)
+        }
       }
     }
 
@@ -271,7 +289,7 @@ main()
     process.exit(1)
   })
 
-export async function updateLog(chainId: number, contractName: string, data: IPoolDeploymentsJSON, path?: string) {
+async function updateLog(chainId: number, contractName: string, data: IPoolDeploymentsJSON, path?: string) {
   try {
     const logRaw = await fs.promises.readFile(path ? path : './deployments/default/pools.json', {
       encoding: 'utf-8',
@@ -297,11 +315,7 @@ export async function updateLog(chainId: number, contractName: string, data: IPo
   }
 }
 
-export async function readLog(
-  chainId: number,
-  contractName: string,
-  path?: string,
-): Promise<IPoolDeploymentsJSON | unknown> {
+async function readLog(chainId: number, contractName: string, path?: string): Promise<IPoolDeploymentsJSON | unknown> {
   try {
     const logRaw = await fs.promises.readFile(path ? path : './deployments/default/pools.json', {
       encoding: 'utf-8',

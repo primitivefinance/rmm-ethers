@@ -314,11 +314,11 @@ const config: HardhatUserConfig = {
       apiKey: UNIVERSAL_RELAY_KOVAN_API || '',
       apiSecret: UNIVERSAL_RELAY_KOVAN_SECRET || '',
     }, */
-    [chainIds.goerli]: {
+    [chainIds.rinkeby]: {
       apiKey: RELAY_RINKEBY_API || '',
       apiSecret: RELAY_RINKEBY_SECRET || '',
     },
-    [chainIds.rinkeby]: {
+    [chainIds.goerli]: {
       apiKey: RELAY_GOERLI_API || '',
       apiSecret: RELAY_GOERLI_SECRET || '',
     },
