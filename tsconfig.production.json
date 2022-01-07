@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "lib": ["ES2019"],
+    "lib": ["ES2017", "ES2019"],
     "outDir": "dist",
     "module": "esnext",
     "moduleResolution": "node",
-    "target": "es6",
+    "target": "ES2017",
     "baseUrl": ".",
     "importHelpers": true,
     "declaration": true,
