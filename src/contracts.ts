@@ -1,5 +1,5 @@
 import { LogDescription } from '@ethersproject/abi'
-import { BaseContract, ContractInterface } from '@ethersproject/contracts'
+import { Contract, ContractInterface } from '@ethersproject/contracts'
 import { Log } from '@ethersproject/abstract-provider'
 
 import { PrimitiveManager } from '@primitivefi/rmm-manager/typechain/PrimitiveManager'
@@ -8,7 +8,7 @@ import { PositionDescriptor } from '@primitivefi/rmm-manager/typechain/PositionD
 import { PrimitiveFactory } from '@primitivefi/rmm-core/typechain/PrimitiveFactory'
 
 import { EthersProvider, EthersSigner } from './types'
-import { BigNumber } from 'ethers'
+import { BigNumber } from '@ethersproject/bignumber'
 import {
   Engine,
   FactoryManager,
@@ -21,7 +21,8 @@ export interface _TypedLogDescription<T> extends Omit<LogDescription, 'args'> {
   args: T
 }
 
-export class _RmmContract extends BaseContract {
+export class _RmmContract {
+  readonly contract: Contract
   //readonly estimateAndPopulate: Record<string, EstimatedContractFunction<PopulatedTransaction>>
 
   constructor(
@@ -29,15 +30,15 @@ export class _RmmContract extends BaseContract {
     contractInterface: ContractInterface,
     signerOrProvider?: EthersSigner | EthersProvider,
   ) {
-    super(addressOrName, contractInterface, signerOrProvider)
-
+    //super(addressOrName, contractInterface, signerOrProvider)
+    this.contract = new Contract(addressOrName, contractInterface, signerOrProvider)
     //this.estimateAndPopulate = buildEstimatedFunctions(this.estimateGas, this.populateTransaction)
   }
 
   extractEvents(logs: Log[], name: string): _TypedLogDescription<unknown>[] {
     return logs
-      .filter(log => log.address === this.address)
-      .map(log => this.interface.parseLog(log))
+      .filter(log => log.address === this.contract.address)
+      .map(log => this.contract.interface.parseLog(log))
       .filter(e => e.name === name)
   }
 }
@@ -58,7 +59,7 @@ export type _TypeSafeContract<T> = Pick<
     : never
 >
 
-type TypedContract<T extends BaseContract, U, V> = _TypeSafeContract<T> & U & {}
+type TypedContract<T, U, V> = _TypeSafeContract<T> & U & {}
 
 interface ManagerContract extends _TypedRmmContract<PrimitiveManager> {
   extractEvents(

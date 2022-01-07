@@ -7,7 +7,7 @@ import { Signer } from '@ethersproject/abstract-signer'
 import { DefenderRelaySigner } from 'defender-relay-client/lib/ethers'
 import { Contract } from 'ethers'
 import { EthersRmm, _RmmContractAbis } from '../src'
-import { AllocateOptions, Pool } from '@primitivefi/rmm-sdk'
+import { AllocateOptions, Pool, PoolSides } from '@primitivefi/rmm-sdk'
 import TestERC20Artifact from '../artifacts/contracts/TestERC20.sol/TestERC20.json'
 import USDCArtifact from '../artifacts/contracts/USDC.sol/USDC.json'
 import { getAddress } from 'ethers/lib/utils'
@@ -23,9 +23,9 @@ const POOL = {
     { strike: 5, sigma: 1 },
     { strike: 5, sigma: 1.25 },
     { strike: 5, sigma: 1.5 },
-    { strike: 10, sigma: 1 },
-    { strike: 10, sigma: 1.25 },
-    { strike: 10, sigma: 1.5 },
+    { strike: 7.5, sigma: 1 },
+    { strike: 7.5, sigma: 1.25 },
+    { strike: 7.5, sigma: 1.5 },
   ],
 }
 
@@ -112,6 +112,7 @@ const fn = async () => {
   const poolsFromConfig = poolConfig.pools
   const referencePrice = poolConfig.spot
 
+  const loadedDeployment = (await readLog(chainId, poolConfig.name, POOL_DEPLOYMENTS_SAVE)) as IPoolDeploymentsJSON
   const [yevCRVLike, usdcLike] = await getPoolTokensFromDeployment(poolConfig.name, chainId)
 
   let yveCRV: Contract
@@ -120,6 +121,12 @@ const fn = async () => {
     console.log(`Deploying ${yevCRVLike?.symbol}!`)
     yveCRV = await Erc20Factory.deploy('Test yveCRV-DAO yVault', 'yveCRV-DAO')
     await yveCRV.deployed()
+
+    const next: IPoolDeploymentsJSON = {
+      ...loadedDeployment,
+      risky: { address: yveCRV.address, decimals: 18, name: 'Test yveCRV-DAO yVault', symbol: 'yveCRV-DAO' },
+    }
+    await updateLog(chainId, poolConfig.name, next, POOL_DEPLOYMENTS_SAVE)
   }
 
   let USDC: Contract
@@ -128,6 +135,11 @@ const fn = async () => {
     console.log(`Deploying ${usdcLike?.symbol}!`)
     USDC = await (await hre.ethers.getContractFactory('USDC', signer)).deploy('Test USD Coin', 'USDC', 6)
     await USDC.deployed()
+    const next: IPoolDeploymentsJSON = {
+      ...loadedDeployment,
+      stable: { address: USDC.address, decimals: 6, name: 'Test USD Coin', symbol: 'USDC' },
+    }
+    await updateLog(chainId, poolConfig.name, next, POOL_DEPLOYMENTS_SAVE)
   }
 
   const pairs = [[yveCRV, USDC]]
@@ -142,32 +154,17 @@ const fn = async () => {
     const risky = { address: riskyToken.address, decimals: rMetadata[0], name: rMetadata[1], symbol: rMetadata[2] }
     const stable = { address: stableToken.address, decimals: sMetadata[0], name: sMetadata[1], symbol: sMetadata[2] }
 
-    // load pool tokens
-    const loadedDeployment = (await readLog(chainId, poolConfig.name, POOL_DEPLOYMENTS_SAVE)) as IPoolDeploymentsJSON
-    const preDeployment: IPoolDeploymentsJSON = {
-      name: poolConfig.name,
-      risky,
-      stable,
-      pools: { ...loadedDeployment?.pools },
-    }
-    if (
-      (loadedDeployment?.name && preDeployment?.name && preDeployment?.name !== loadedDeployment?.name) ||
-      (loadedDeployment?.risky && preDeployment?.risky && preDeployment.risky.name !== loadedDeployment.risky.name)
-    ) {
-      await updateLog(chainId, poolConfig.name, preDeployment, POOL_DEPLOYMENTS_SAVE)
-    }
     // Get engine, or deploy an engine
-
     let engine: Contract = await getEngineOrDeployEngine(rmm, riskyToken, stableToken)
     console.log(`Got engine or deployed engine: ${engine.address}`)
 
     // get default parameters
-    const minRisky = parseWei('1000', risky.decimals)
-    const minStable = parseWei('10000', stable.decimals)
+    const minRisky = parseWei('100000000', risky.decimals)
+    const minStable = parseWei('100000000', stable.decimals)
     const now = Time.now
     const maturity = new Time(DEFAULT_MATURITY)
     const gamma = DEFAULT_GAMMA
-    const delLiquidity = parseWei(100)
+    const delLiquidity = parseWei(1)
 
     // if testnet, sync with current timestamp
     if (chainId === 1337) await hre.network.provider.send('evm_mine', [now])
@@ -175,7 +172,6 @@ const fn = async () => {
     // get params
     let poolEntities: Pool[] = []
 
-    const allPools: CalibrationType[] = []
     poolsFromConfig.forEach(({ strike, sigma }) => {
       const calibration: CalibrationType = {
         strike: parseWei(strike, stable.decimals).toString(),
@@ -193,7 +189,6 @@ const fn = async () => {
         chainId,
         delLiquidity.toString(),
       )
-      allPools.push(calibration)
       poolEntities.push(pool)
     })
 
@@ -214,11 +209,14 @@ const fn = async () => {
     let poolDeployments: PoolDeployments = {}
 
     for (let i = 0; i < poolEntities.length; i++) {
-      // mint test tokens if our balance gets low
-      if (minRisky.gt(riskyBalance)) await riskyToken.mint(from, minRisky.raw)
-      if (minStable.gt(stableBalance)) await stableToken.mint(from, minStable.raw)
-
       const pool = poolEntities[i]
+
+      const { delRisky, delStable } = pool.liquidityQuote(delLiquidity, PoolSides.RMM_LP)
+
+      // mint test tokens if our balance gets low
+      if (delRisky.gt(riskyBalance)) await riskyToken.mint(from, delRisky.raw)
+      if (delStable.gt(stableBalance)) await stableToken.mint(from, delStable.raw)
+
       const options: AllocateOptions = {
         recipient: from,
         slippageTolerance: parsePercentage(0.01),
@@ -236,11 +234,6 @@ const fn = async () => {
         pool.maturity.raw,
         pool.gamma.float,
       )
-      poolDeployments = Object.assign(poolDeployments, {
-        [pool.poolId]: poolSymbol,
-      })
-
-      console.log(`Got log for: ${loadedDeployment?.name}`)
 
       const engineExists = loadedDeployment?.name
       const poolIdExists =
@@ -261,6 +254,10 @@ const fn = async () => {
           } = await rmm.createPool({
             pool,
             options,
+          })
+
+          poolDeployments = Object.assign(poolDeployments, {
+            [poolId]: poolSymbol,
           })
         } catch (e) {
           console.log(`Failed to create pool!`, e?.code)

@@ -5,11 +5,11 @@
 ```ts
 
 import { AllocateOptions } from '@primitivefi/rmm-sdk';
-import { BaseContract } from '@ethersproject/contracts';
 import { BatchTransferOptions } from '@primitivefi/rmm-sdk';
 import { BigNumber } from 'ethers';
 import { BigNumber as BigNumber_2 } from '@ethersproject/bignumber';
 import { BlockTag } from '@ethersproject/abstract-provider';
+import { Contract } from '@ethersproject/contracts';
 import { ContractInterface } from '@ethersproject/contracts';
 import { Log } from '@ethersproject/abstract-provider';
 import { LogDescription } from '@ethersproject/abi';
@@ -329,8 +329,10 @@ export interface ReadableRmm {
 }
 
 // @public (undocumented)
-export class _RmmContract extends BaseContract {
+export class _RmmContract {
     constructor(addressOrName: string, contractInterface: ContractInterface, signerOrProvider?: EthersSigner | EthersProvider);
+    // (undocumented)
+    readonly contract: Contract;
     // (undocumented)
     extractEvents(logs: Log[], name: string): _TypedLogDescription<unknown>[];
 }

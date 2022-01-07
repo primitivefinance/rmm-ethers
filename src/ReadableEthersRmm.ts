@@ -66,17 +66,19 @@ export class ReadableEthersRmm implements ReadableRmm {
 
   /** {@inheritdoc ReadableRmm.getPool} */
   getPool(poolId: string, overrides?: EthersCallOverrides): Promise<Pool> {
-    const { primitiveManager } = _getContracts(this.connection)
-    return primitiveManager.uri(poolId).then(poolify)
+    const {
+      primitiveManager: { contract },
+    } = _getContracts(this.connection)
+    return contract.uri(poolId).then(poolify)
   }
 
   /** {@inheritdoc ReadableRmm.getLiquidityBalance} */
   getLiquidityBalance(poolId: string, address: string, overrides?: EthersCallOverrides): Promise<Wei> {
-    const { primitiveManager } = _getContracts(this.connection)
+    const {
+      primitiveManager: { contract },
+    } = _getContracts(this.connection)
 
-    return primitiveManager
-      .balanceOf(address, poolId)
-      .then((bal: { toString: () => string }) => weiToWei(bal.toString()))
+    return contract.balanceOf(address, poolId).then((bal: { toString: () => string }) => weiToWei(bal.toString()))
   }
 
   /** {@inheritdoc ReadableRmm.getPosition} */
@@ -86,9 +88,11 @@ export class ReadableEthersRmm implements ReadableRmm {
 
   /** {@inheritdoc ReadableRmm.getEngine} */
   getEngine(riskyAddress: string, stableAddress: string, overrides?: EthersCallOverrides): Promise<EngineAddress> {
-    const { primitiveFactory } = _getContracts(this.connection)
-    return primitiveFactory
+    const {
+      primitiveFactory: { contract },
+    } = _getContracts(this.connection)
+    return contract
       .getEngine(getAddress(riskyAddress), getAddress(stableAddress))
-      .then(val => val as EngineAddress)
+      .then((val: string) => val as EngineAddress)
   }
 }

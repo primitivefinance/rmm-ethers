@@ -319,7 +319,7 @@ export class PopulatableEthersRmm
     const { primitiveManager } = _getContracts(this._readable.connection)
 
     const populated = await this._applyGasLimit(
-      primitiveManager,
+      primitiveManager.contract,
       PeripheryManager.allocateCallParameters(params.pool, params.options),
       overrides,
     )
@@ -335,7 +335,7 @@ export class PopulatableEthersRmm
     const { primitiveManager } = _getContracts(this._readable.connection)
 
     const populated = await this._applyGasLimit(
-      primitiveManager,
+      primitiveManager.contract,
       PeripheryManager.removeCallParameters(params.pool, params.options),
       overrides,
     )
@@ -351,7 +351,7 @@ export class PopulatableEthersRmm
     const { primitiveFactory } = _getContracts(this._readable.connection)
 
     const populated = await this._applyGasLimit(
-      primitiveFactory,
+      primitiveFactory.contract,
       {
         calldata: FactoryManager.encodeDeploy(params.risky, params.stable),
         value: toBN(0)._hex,
@@ -375,7 +375,7 @@ export class PopulatableEthersRmm
     const { primitiveManager } = _getContracts(this._readable.connection)
 
     const populated = await this._applyGasLimit(
-      primitiveManager,
+      primitiveManager.contract,
       PeripheryManager.safeTransferFromParameters(params.options),
       overrides,
     )
@@ -391,7 +391,7 @@ export class PopulatableEthersRmm
     const { primitiveManager } = _getContracts(this._readable.connection)
 
     const populated = await this._applyGasLimit(
-      primitiveManager,
+      primitiveManager.contract,
       PeripheryManager.batchTransferFromParameters(params.options),
       overrides,
     )
