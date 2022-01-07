@@ -1,5 +1,5 @@
 import { LogDescription } from '@ethersproject/abi'
-import { Contract, ContractInterface } from '@ethersproject/contracts'
+import { BaseContract, ContractInterface } from '@ethersproject/contracts'
 import { Log } from '@ethersproject/abstract-provider'
 
 import { PrimitiveManager } from '@primitivefi/rmm-manager/typechain/PrimitiveManager'
@@ -21,7 +21,7 @@ export interface _TypedLogDescription<T> extends Omit<LogDescription, 'args'> {
   args: T
 }
 
-export class _RmmContract extends Contract {
+export class _RmmContract extends BaseContract {
   //readonly estimateAndPopulate: Record<string, EstimatedContractFunction<PopulatedTransaction>>
 
   constructor(
@@ -58,7 +58,7 @@ export type _TypeSafeContract<T> = Pick<
     : never
 >
 
-type TypedContract<T extends Contract, U, V> = _TypeSafeContract<T> & U & {}
+type TypedContract<T extends BaseContract, U, V> = _TypeSafeContract<T> & U & {}
 
 interface ManagerContract extends _TypedRmmContract<PrimitiveManager> {
   extractEvents(

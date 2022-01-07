@@ -11,7 +11,9 @@
     "strictNullChecks": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "downlevelIteration": true,
+    "importHelpers": true
   },
   "include": ["./scripts", "./test", "scripts", "src"],
   "files": ["./hardhat.config.ts"]
