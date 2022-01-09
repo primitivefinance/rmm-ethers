@@ -1688,11 +1688,6 @@
     node-fetch "^2.6.0"
     semver "^6.3.0"
 
-"@openzeppelin/contracts@^3.3.0":
-  version "3.4.1"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-3.4.1.tgz#03c891fec7f93be0ae44ed74e57a122a38732ce7"
-  integrity sha512-cUriqMauq1ylzP2TxePNdPqkwI7Le3Annh4K9rrpvKfSBB/bdW+Iu1ihBaTIABTAAJ85LmKL5SSPPL9ry8d1gQ==
-
 "@openzeppelin/contracts@^4.1.0":
   version "4.4.1"
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.4.1.tgz#3382db2cd83ab565ed9626765e7da92944b45de8"
@@ -1727,10 +1722,10 @@
     gaussian "^1.2.0"
     numeric "^1.2.6"
 
-"@primitivefi/rmm-sdk@^1.0.2-beta.5":
-  version "1.0.2-beta.5"
-  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-sdk/-/rmm-sdk-1.0.2-beta.5.tgz#cfafec75dac89d526485104d0a6052c98ceebe2d"
-  integrity sha512-S0uy3O9jIBo+30GJmq5JUxjf9iPSWtn8GDJyXVfFYMf6+lbVKx73GUjmWfzBIvuOQL+ycXBkglnawM0JdB45nA==
+"@primitivefi/rmm-sdk@^1.0.3-beta.5":
+  version "1.0.3-beta.5"
+  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-sdk/-/rmm-sdk-1.0.3-beta.5.tgz#8b5b6725975315b4718582fb0031095b101b5f0c"
+  integrity sha512-qb67JaYVD7trj7sKcn28Kd7wiqB6+JfaBdZeJIr7p5Zf4M/Wsm8hZiJbZtgbOzB9rU10UqVTI74vQGeEKMb0cA==
   dependencies:
     "@primitivefi/rmm-core" "^2.0.0-beta.5"
     "@primitivefi/rmm-manager" "^2.0.0-beta.5"
@@ -1738,6 +1733,11 @@
     "@uniswap/sdk-core" "^3.0.1"
     tiny-invariant "^1.1.0"
     tiny-warning "^1.0.3"
+
+"@rari-capital/solmate@^6.2.0":
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/@rari-capital/solmate/-/solmate-6.2.0.tgz#4f70dc236606c27ec2cb1b4261dd830235d01fe4"
+  integrity sha512-g94F+Ra9ixyJyNgvnOIufNjUz488uEG0nxIEEtJ7+g+tA1XGUupRB2kB5b+VO7WYO26RNOVD2fW6xE4e14iWpg==
 
 "@rollup/plugin-babel@^5.1.0":
   version "5.3.0"
@@ -5116,6 +5116,11 @@ har-validator@~5.1.3:
   dependencies:
     ajv "^6.12.3"
     har-schema "^2.0.0"
+
+hardhat-dependency-compiler@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/hardhat-dependency-compiler/-/hardhat-dependency-compiler-1.1.2.tgz#02867b7c6dd3de4924d9d3d6593feab8408f1eeb"
+  integrity sha512-LVnsPSZnGvzWVvlpewlkPKlPtFP/S9V41RC1fd/ygZc4jkG8ubNlfE82nwiGw5oPueHSmFi6TACgmyrEOokK8w==
 
 hardhat-gas-reporter@^1.0.4:
   version "1.0.4"

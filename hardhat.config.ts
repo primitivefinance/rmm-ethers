@@ -11,6 +11,7 @@ import '@typechain/hardhat'
 import 'hardhat-gas-reporter'
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-etherscan'
+import 'hardhat-dependency-compiler'
 
 import { Signer } from '@ethersproject/abstract-signer'
 import { BigNumber } from '@ethersproject/bignumber'
@@ -198,14 +199,14 @@ subtask('useSigner', 'use the default signer or one at the signers index')
 
 // --- Deploy ---
 
-const defaultChannel = 'default'
-
 type DeployParams = {
   defender: boolean
   channel: string
   gasPrice: number
   testweth?: string
 }
+
+const defaultChannel = process.env.CHANNEL || 'default'
 
 task('deploy', 'Deploys the contracts to the network')
   .addFlag('defender', 'Use open zeppelin defender relay to deploy contracts.')
@@ -281,6 +282,7 @@ const config: HardhatUserConfig = {
   },
   solidity: {
     compilers: [
+      { version: '0.8.6' },
       {
         version: '0.6.12',
       },
@@ -326,6 +328,15 @@ const config: HardhatUserConfig = {
       apiKey: RELAY_KOVAN_API || '',
       apiSecret: RELAY_KOVAN_SECRET || '',
     },
+  },
+  dependencyCompiler: {
+    paths: [
+      '@primitivefi/rmm-core/contracts/PrimitiveEngine.sol',
+      '@primitivefi/rmm-core/contracts/PrimitiveFactory.sol',
+      '@primitivefi/rmm-manager/contracts/PrimitiveManager.sol',
+      '@primitivefi/rmm-manager/contracts/PositionRenderer.sol',
+      '@primitivefi/rmm-manager/contracts/PositionDescriptor.sol',
+    ],
   },
 }
 

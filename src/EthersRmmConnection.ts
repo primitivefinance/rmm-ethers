@@ -3,14 +3,18 @@ import { Signer } from '@ethersproject/abstract-signer'
 import { _connectToContracts, _RmmContractAddresses, _RmmContracts, _RmmDeploymentJSON } from './contracts'
 import { EthersProvider, EthersSigner } from './types'
 
+import devOrNull from '../deployments/default/dev.json'
 import rinkeby from '../deployments/default/rinkeby.json'
 import goerli from '../deployments/default/goerli.json'
 import kovan from '../deployments/default/kovan.json'
+
+const dev = devOrNull as _RmmDeploymentJSON | null
 
 const deployments: { [chainId: number]: _RmmDeploymentJSON | undefined } = {
   [rinkeby.chainId]: rinkeby,
   [goerli.chainId]: goerli,
   [kovan.chainId]: kovan,
+  ...(dev !== null ? { [dev.chainId]: dev } : {}),
 }
 
 /**

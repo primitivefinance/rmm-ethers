@@ -6,8 +6,7 @@
 
 import { AllocateOptions } from '@primitivefi/rmm-sdk';
 import { BatchTransferOptions } from '@primitivefi/rmm-sdk';
-import { BigNumber } from 'ethers';
-import { BigNumber as BigNumber_2 } from '@ethersproject/bignumber';
+import { BigNumber } from '@ethersproject/bignumber';
 import { BlockTag } from '@ethersproject/abstract-provider';
 import { Contract } from '@ethersproject/contracts';
 import { ContractInterface } from '@ethersproject/contracts';
@@ -135,9 +134,9 @@ export interface EthersTransactionOverrides {
     // (undocumented)
     from?: string;
     // (undocumented)
-    gasLimit?: BigNumber_2;
+    gasLimit?: BigNumber;
     // (undocumented)
-    gasPrice?: BigNumber_2;
+    gasPrice?: BigNumber;
     // (undocumented)
     nonce?: number;
 }
