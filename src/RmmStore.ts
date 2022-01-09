@@ -1,8 +1,12 @@
 import assert from 'assert'
 
-interface RmmBaseStoreState {}
+interface RmmBaseStoreState {
+  placeholder?: string
+}
 
-interface RmmDerivedStoreState {}
+interface RmmDerivedStoreState {
+  placeholder?: string
+}
 
 export type RmmStoreState<T = unknown> = RmmBaseStoreState & RmmDerivedStoreState & T
 
@@ -119,25 +123,25 @@ export abstract class RmmStore<T = unknown> {
   }
 
   private _reduce(baseState: RmmBaseStoreState, baseStateUpdate: Partial<RmmBaseStoreState>): RmmBaseStoreState {
-    return {}
+    return { placeholder: '' }
   }
 
-  private _derive({}: RmmBaseStoreState): RmmDerivedStoreState {
-    return {}
+  private _derive({ placeholder }: RmmBaseStoreState): RmmDerivedStoreState {
+    return { placeholder } as RmmDerivedStoreState
   }
 
   private _reduceDerived(
     derivedState: RmmDerivedStoreState,
     derivedStateUpdate: RmmDerivedStoreState,
   ): RmmDerivedStoreState {
-    return {}
+    return { placeholder: '' }
   }
 
   /** @internal */
   protected abstract _reduceExtra(extraState: T, extraStateUpdate: Partial<T>): T
 
   private _notify(params: RmmStoreListenerParams<T>) {
-    ;[...this._listeners].forEach(listener => {
+    [...this._listeners].forEach(listener => {
       if (this._listeners.has(listener)) {
         listener(params)
       }
@@ -159,7 +163,9 @@ export abstract class RmmStore<T = unknown> {
     }
   }
 
-  protected _load(): void {}
+  protected _load(): void {
+    console.log('placeholder')
+  }
 
   protected _update(baseStateUpdate?: Partial<RmmBaseStoreState>, extraStateUpdate?: Partial<T>): void {
     assert(this._baseState && this._derivedState)

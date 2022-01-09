@@ -46,21 +46,19 @@ export const _connectToContracts: (signerOrProvider: EthersSigner | EthersProvid
 // @internal (undocumented)
 export const _connectToDeployment: (deployment: _RmmDeploymentJSON, signerOrProvider: EthersSigner | EthersProvider) => EthersRmmConnection;
 
-// Warning: (ae-incompatible-release-tags) The symbol "_connectToNetwork" is marked as @public, but its signature references "EthersRmmConnection" which is marked as @beta
-//
-// @public (undocumented)
+// @internal (undocumented)
 export function _connectToNetwork(provider: EthersProvider, signer: EthersSigner | undefined, chainId: number): EthersRmmConnection;
 
-// @public
+// @beta
 export type EngineAddress = string;
 
-// @public
+// @beta
 export interface EngineCreationDetails {
     engine: EngineAddress;
     params: EngineCreationParams;
 }
 
-// @public
+// @beta
 export type EngineCreationParams = {
     risky: string;
     stable: string;
@@ -113,11 +111,9 @@ export interface EthersRmmConnection {
     readonly startBlock: number;
 }
 
-// @public (undocumented)
+// @beta (undocumented)
 export interface EthersRmmConnectionOptional {
     // Warning: (ae-forgotten-export) The symbol "EthersRmmStoreOption" needs to be exported by the entry point index.d.ts
-    //
-    // @beta
     readonly hasStore?: EthersRmmStoreOption;
 }
 
@@ -175,7 +171,7 @@ export interface _InternalEthersRmmConnection extends EthersRmmConnection {
 // @public
 export type MinedReceipt<R = unknown, D = unknown> = FailedReceipt<R> | SuccessfulReceipt<R, D>;
 
-// @public
+// @beta
 export function parseTokenURI(uri: string): any;
 
 // @public
@@ -224,10 +220,9 @@ export class PopulatedEthersSignerTransaction<T = unknown> implements PopulatedR
     send(): Promise<SentEthersRmmTransaction<T>>;
 }
 
-// @public
+// @beta
 export interface PopulatedRmmTransaction<P = unknown, T extends SentRmmTransaction = SentRmmTransaction> {
     readonly rawPopulatedTransaction: P;
-    // @beta
     send(): Promise<T>;
 }
 
@@ -256,17 +251,19 @@ export interface PositionAdjustmentDetails {
     createdPool?: boolean;
     // Warning: (ae-incompatible-release-tags) The symbol "newPosition" is marked as @public, but its signature references "Position" which is marked as @beta
     newPosition: Position;
+    // Warning: (ae-incompatible-release-tags) The symbol "params" is marked as @public, but its signature references "PositionAllocateParams" which is marked as @beta
+    // Warning: (ae-incompatible-release-tags) The symbol "params" is marked as @public, but its signature references "PositionRemoveParams" which is marked as @beta
     params: PositionAllocateParams | PositionRemoveParams;
 }
 
-// Warning: (ae-incompatible-release-tags) The symbol "PositionAllocateParams" is marked as @public, but its signature references "_PoolAction" which is marked as @internal
+// Warning: (ae-incompatible-release-tags) The symbol "PositionAllocateParams" is marked as @beta, but its signature references "_PoolAction" which is marked as @internal
 //
-// @public
+// @beta
 export type PositionAllocateParams<T = unknown> = _PoolAction & {
     options: AllocateOptions;
 };
 
-// @public
+// @beta
 export type PositionBatchTransferParams = {
     options: BatchTransferOptions;
 };
@@ -279,14 +276,14 @@ export interface _PositionChange<T> {
     params: T;
 }
 
-// Warning: (ae-incompatible-release-tags) The symbol "PositionRemoveParams" is marked as @public, but its signature references "_PoolAction" which is marked as @internal
+// Warning: (ae-incompatible-release-tags) The symbol "PositionRemoveParams" is marked as @beta, but its signature references "_PoolAction" which is marked as @internal
 //
-// @public
+// @beta
 export type PositionRemoveParams = _PoolAction & {
     options: RemoveOptions;
 };
 
-// @public
+// @beta
 export type PositionTransferParams = {
     options: SafeTransferOptions;
 };
@@ -327,11 +324,13 @@ export interface ReadableRmm {
     getPosition(pool: Pool, address: string, overrides?: EthersCallOverrides): Promise<Position>;
 }
 
-// @public (undocumented)
+// @beta (undocumented)
 export class _RmmContract {
     constructor(addressOrName: string, contractInterface: ContractInterface, signerOrProvider?: EthersSigner | EthersProvider);
     // (undocumented)
     readonly contract: Contract;
+    // Warning: (ae-incompatible-release-tags) The symbol "extractEvents" is marked as @beta, but its signature references "_TypedLogDescription" which is marked as @internal
+    //
     // (undocumented)
     extractEvents(logs: Log[], name: string): _TypedLogDescription<unknown>[];
 }
@@ -437,6 +436,32 @@ export class SendableEthersRmm implements SendableRmm<EthersTransactionReceipt, 
 
 // @public (undocumented)
 export interface SendableRmm<R = unknown, S = unknown> {
+    // Warning: (ae-incompatible-release-tags) The symbol "allocate" is marked as @public, but its signature references "PositionAllocateParams" which is marked as @beta
+    // Warning: (ae-incompatible-release-tags) The symbol "allocate" is marked as @public, but its signature references "SentEthersRmmTransaction" which is marked as @beta
+    //
+    // (undocumented)
+    allocate(params: PositionAllocateParams, overrides?: EthersTransactionOverrides): Promise<SentEthersRmmTransaction<PositionAdjustmentDetails>>;
+    // Warning: (ae-incompatible-release-tags) The symbol "createEngine" is marked as @public, but its signature references "EngineCreationParams" which is marked as @beta
+    // Warning: (ae-incompatible-release-tags) The symbol "createEngine" is marked as @public, but its signature references "SentEthersRmmTransaction" which is marked as @beta
+    // Warning: (ae-incompatible-release-tags) The symbol "createEngine" is marked as @public, but its signature references "EngineCreationDetails" which is marked as @beta
+    //
+    // (undocumented)
+    createEngine(params: EngineCreationParams, overrides?: EthersTransactionOverrides): Promise<SentEthersRmmTransaction<EngineCreationDetails>>;
+    // Warning: (ae-incompatible-release-tags) The symbol "remove" is marked as @public, but its signature references "PositionRemoveParams" which is marked as @beta
+    // Warning: (ae-incompatible-release-tags) The symbol "remove" is marked as @public, but its signature references "SentEthersRmmTransaction" which is marked as @beta
+    //
+    // (undocumented)
+    remove(params: PositionRemoveParams, overrides?: EthersTransactionOverrides): Promise<SentEthersRmmTransaction<PositionAdjustmentDetails>>;
+    // Warning: (ae-incompatible-release-tags) The symbol "safeBatchTransfer" is marked as @public, but its signature references "PositionBatchTransferParams" which is marked as @beta
+    // Warning: (ae-incompatible-release-tags) The symbol "safeBatchTransfer" is marked as @public, but its signature references "SentEthersRmmTransaction" which is marked as @beta
+    //
+    // (undocumented)
+    safeBatchTransfer(params: PositionBatchTransferParams, overrides?: EthersTransactionOverrides): Promise<SentEthersRmmTransaction<void>>;
+    // Warning: (ae-incompatible-release-tags) The symbol "safeTransfer" is marked as @public, but its signature references "PositionTransferParams" which is marked as @beta
+    // Warning: (ae-incompatible-release-tags) The symbol "safeTransfer" is marked as @public, but its signature references "SentEthersRmmTransaction" which is marked as @beta
+    //
+    // (undocumented)
+    safeTransfer(params: PositionTransferParams, overrides?: EthersTransactionOverrides): Promise<SentEthersRmmTransaction<void>>;
 }
 
 // @beta
@@ -468,9 +493,9 @@ export type SuccessfulReceipt<R = unknown, D = unknown> = {
 // @internal (undocumented)
 export const _successfulReceipt: <R, D>(rawReceipt: R, details: D, toString?: (() => string) | undefined) => SuccessfulReceipt<R, D>;
 
-// Warning: (ae-incompatible-release-tags) The symbol "SwapParams" is marked as @public, but its signature references "_PoolAction" which is marked as @internal
+// Warning: (ae-incompatible-release-tags) The symbol "SwapParams" is marked as @beta, but its signature references "_PoolAction" which is marked as @internal
 //
-// @public
+// @beta
 export type SwapParams = _PoolAction & {
     options: SwapOptions;
 };
@@ -483,7 +508,7 @@ export class TransactionFailedError<T extends FailedReceipt = FailedReceipt> ext
     readonly failedReceipt: T;
 }
 
-// @public (undocumented)
+// @internal (undocumented)
 export interface _TypedLogDescription<T> extends Omit<LogDescription, 'args'> {
     // (undocumented)
     args: T;
@@ -491,12 +516,12 @@ export interface _TypedLogDescription<T> extends Omit<LogDescription, 'args'> {
 
 // Warning: (ae-forgotten-export) The symbol "TypedContract" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @internal (undocumented)
 export type _TypedRmmContract<T = unknown, U = unknown> = TypedContract<_RmmContract, T, U>;
 
 // Warning: (ae-forgotten-export) The symbol "BucketOfFunctions" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @internal (undocumented)
 export type _TypeSafeContract<T> = Pick<T, {
     [P in keyof T]: BucketOfFunctions extends T[P] ? never : P;
 } extends {

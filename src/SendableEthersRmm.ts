@@ -121,7 +121,32 @@ export interface SentRmmTransaction<S = unknown, T extends RmmReceipt = RmmRecei
   waitForReceipt(): Promise<Extract<T, MinedReceipt>>
 }
 
-export interface SendableRmm<R = unknown, S = unknown> {}
+export interface SendableRmm<R = unknown, S = unknown> {
+  allocate(
+    params: PositionAllocateParams,
+    overrides?: EthersTransactionOverrides,
+  ): Promise<SentEthersRmmTransaction<PositionAdjustmentDetails>>
+
+  remove(
+    params: PositionRemoveParams,
+    overrides?: EthersTransactionOverrides,
+  ): Promise<SentEthersRmmTransaction<PositionAdjustmentDetails>>
+
+  safeTransfer(
+    params: PositionTransferParams,
+    overrides?: EthersTransactionOverrides,
+  ): Promise<SentEthersRmmTransaction<void>>
+
+  safeBatchTransfer(
+    params: PositionBatchTransferParams,
+    overrides?: EthersTransactionOverrides,
+  ): Promise<SentEthersRmmTransaction<void>>
+
+  createEngine(
+    params: EngineCreationParams,
+    overrides?: EthersTransactionOverrides,
+  ): Promise<SentEthersRmmTransaction<EngineCreationDetails>>
+}
 
 /**
  * Ethers implementation of {@link SendableRmm}

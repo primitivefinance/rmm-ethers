@@ -54,11 +54,11 @@ describe('RMM Ethers', () => {
   let weth: Contract
 
   before(async () => {
-    ;[deployer, signer1] = await ethers.getSigners()
+    [deployer, signer1] = await ethers.getSigners()
     user0 = await deployer.getAddress()
     user1 = await signer1.getAddress()
     weth = await deployWeth(deployer)
-    let wethAddress = weth.address
+    const wethAddress = weth.address
     deployment = await deployRmm(deployer, wethAddress)
 
     rmm = await connectToDeployment(deployment, deployer)

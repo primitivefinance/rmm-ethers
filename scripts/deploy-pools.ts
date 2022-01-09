@@ -112,7 +112,7 @@ async function getEngineOrDeployEngine(rmm: EthersRmm, riskyToken: Contract, sta
   }
 
   if (engineAddress === AddressZero) throw new Error('Zero address on engine')
-  let engine: Contract = new Contract(engineAddress, _RmmContractAbis.primitiveEngine, rmm.connection.signer)
+  const engine: Contract = new Contract(engineAddress, _RmmContractAbis.primitiveEngine, rmm.connection.signer)
   return engine
 }
 
@@ -262,7 +262,7 @@ const fn = async () => {
     const stable = { address: stableToken.address, decimals: sMetadata[0], name: sMetadata[1], symbol: sMetadata[2] }
 
     // Get engine, or deploy an engine
-    let engine: Contract = await getEngineOrDeployEngine(rmm, riskyToken, stableToken)
+    const engine: Contract = await getEngineOrDeployEngine(rmm, riskyToken, stableToken)
     console.log(`Got engine or deployed engine: ${engine.address}`)
 
     // get default parameters
@@ -275,7 +275,7 @@ const fn = async () => {
     if (chainId === 1337) await hre.network.provider.send('evm_mine', [now])
 
     // get params
-    let poolEntities: Pool[] = []
+    const poolEntities: Pool[] = []
 
     poolsFromConfig.forEach(({ strike, sigma }) => {
       const calibration: CalibrationType = {

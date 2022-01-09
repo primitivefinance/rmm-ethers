@@ -91,6 +91,7 @@ export const _connectToDeployment = (
 
 type EthersRmmStoreOption = 'default'
 
+/** @beta */
 export interface EthersRmmConnectionOptional {
   /**
    * Creates a {@link RmmStore} returned by `store` property.
@@ -100,6 +101,7 @@ export interface EthersRmmConnectionOptional {
   readonly hasStore?: EthersRmmStoreOption
 }
 
+/** @internal */
 export function _connectToNetwork(
   provider: EthersProvider,
   signer: EthersSigner | undefined,

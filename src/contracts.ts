@@ -17,10 +17,12 @@ import {
   PositionRendererManager,
 } from '@primitivefi/rmm-sdk'
 
+/** @internal */
 export interface _TypedLogDescription<T> extends Omit<LogDescription, 'args'> {
   args: T
 }
 
+/** @beta */
 export class _RmmContract {
   readonly contract: Contract
   //readonly estimateAndPopulate: Record<string, EstimatedContractFunction<PopulatedTransaction>>
@@ -43,11 +45,12 @@ export class _RmmContract {
   }
 }
 
+/** @internal */
 export type _TypedRmmContract<T = unknown, U = unknown> = TypedContract<_RmmContract, T, U>
 
 type BucketOfFunctions = Record<string, (...args: unknown[]) => never>
 
-// Removes unsafe index signatures from an Ethers contract type
+/** @internal */
 export type _TypeSafeContract<T> = Pick<
   T,
   {
@@ -59,7 +62,7 @@ export type _TypeSafeContract<T> = Pick<
     : never
 >
 
-type TypedContract<T, U, V> = _TypeSafeContract<T> & U & {}
+type TypedContract<T, U, V> = _TypeSafeContract<T> & U & unknown
 
 interface ManagerContract extends _TypedRmmContract<PrimitiveManager> {
   extractEvents(
@@ -92,8 +95,8 @@ interface FactoryContract extends _TypedRmmContract<PrimitiveFactory> {
   extractEvents(logs: Log[], name: 'DeployedEngine'): _TypedLogDescription<{ engine: string }>[]
 }
 
-interface PositionRendererContract extends _TypedRmmContract<PositionRenderer> {}
-interface PositionDescriptorContract extends _TypedRmmContract<PositionDescriptor> {}
+type PositionRendererContract = _TypedRmmContract<PositionRenderer>
+type PositionDescriptorContract = _TypedRmmContract<PositionDescriptor>
 
 /** @internal */
 export interface _RmmContracts {
