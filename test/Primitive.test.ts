@@ -1,6 +1,6 @@
 import { ethers, deployRmm } from 'hardhat'
 import chai from 'chai'
-import { BigNumber, Contract, Signer } from 'ethers'
+import { Contract, Signer } from 'ethers'
 
 import { EthersRmm } from '../src/EthersRmm'
 import { _connectToDeployment, _RmmDeploymentJSON } from '../src'
@@ -10,7 +10,6 @@ import TestWeth from '@primitivefi/rmm-manager/artifacts/contracts/test/WETH9.so
 
 import { parsePercentage, parseWei, Time } from 'web3-units'
 import { Position } from '../src/Position'
-import { parseUnits } from 'ethers/lib/utils'
 
 const { MaxUint256 } = ethers.constants
 
@@ -29,8 +28,8 @@ const deployWeth = async (signer: Signer) => {
 }
 
 const deployTestERC20 = async (signer: Signer) => {
-  const contract = await ethers.getContractFactory('TestToken')
-  const t = await contract.deploy()
+  const contract = await ethers.getContractFactory('ERC20')
+  const t = await contract.deploy('test token', 't', 18)
   await t.deployed()
   return t
 }
@@ -54,7 +53,7 @@ describe('RMM Ethers', () => {
   let weth: Contract
 
   before(async () => {
-    [deployer, signer1] = await ethers.getSigners()
+    ;[deployer, signer1] = await ethers.getSigners()
     user0 = await deployer.getAddress()
     user1 = await signer1.getAddress()
     weth = await deployWeth(deployer)
