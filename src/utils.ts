@@ -3,9 +3,11 @@ import { Pool } from '@primitivefi/rmm-sdk'
 /**
  * Parses raw string URI encoded in Base64.
  *
- * @param uri JSON string with a `base64` encoding
+ * @param uri - JSON string with a `base64` encoding
  *
  * @returns Parsed JSON of `uri`.
+ *
+ * @beta
  */
 export function parseTokenURI(uri: string) {
   const json = Buffer.from(uri.substring(29), 'base64').toString()
@@ -16,7 +18,7 @@ export function parseTokenURI(uri: string) {
 /**
  * Parses a raw RMM-LP uri string into a Pool entity.
  *
- * @param raw URI string returned by PrimitiveManager `uri` function.
+ * @param raw - URI string returned by PrimitiveManager `uri` function.
  * @returns Pool entity.
  *
  * @beta

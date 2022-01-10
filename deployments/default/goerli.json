@@ -1,13 +1,13 @@
 {
   "chainId": 5,
-  "version": "8f32bf1f18a8aa99f5cdadda762848859ac92562",
-  "deploymentDate": 1641431431884,
+  "version": "642932c0e792512ccb255368ed617e8f2025fdbd",
+  "deploymentDate": 1641778055003,
   "_isDev": false,
-  "startBlock": 9941257,
+  "startBlock": 6173423,
   "addresses": {
-    "primitiveFactory": "0xc28E69C140fE578f1E22dEd2b0728601aaaC7a18",
-    "positionRenderer": "0xC262a03AECd5704B3f2E92b90D66aE6ED17361ee",
-    "positionDescriptor": "0x47BF926c0F1cD81e2009fF255D4435b0B276216B",
-    "primitiveManager": "0x4A32cb4dC3bF7973c828D7dC5Eab87d11e77d62D"
+    "primitiveFactory": "0x0D4F091e3E0BD3426E941818410fB714B81a7932",
+    "positionRenderer": "0x0DC83Eb92fe1340570aE1aaDAac65eFA6cee1735",
+    "positionDescriptor": "0x24D8885AE2463C939551Ff69baef31Cab8391b62",
+    "primitiveManager": "0x06944AEf33c98a470bCA172dEc7dC0Ef341B4142"
   }
 }

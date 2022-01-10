@@ -39,3 +39,21 @@ Run the Mocha tests:
 ```sh
 $ yarn test
 ```
+
+## Deployments
+
+### RMM Protocol
+
+Deploy the protocol to a network:
+
+```sh
+$ yarn deploy --network nameOfNetwork
+```
+
+### RMM Pools
+
+Deploy pools in the config of the `deploy-pools.ts` script:
+
+```sh
+$ yarn deploy:pools --network nameOfNetwork
+```

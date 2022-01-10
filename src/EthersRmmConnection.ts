@@ -3,14 +3,18 @@ import { Signer } from '@ethersproject/abstract-signer'
 import { _connectToContracts, _RmmContractAddresses, _RmmContracts, _RmmDeploymentJSON } from './contracts'
 import { EthersProvider, EthersSigner } from './types'
 
-import rinkeby from '../deployments/default/rinkeby.json'
-import goerli from '../deployments/default/goerli.json'
-import kovan from '../deployments/default/kovan.json'
+import devOrNull from '../deployments/dev.json'
+import rinkeby from '../deployments/rinkeby.json'
+import goerli from '../deployments/goerli.json'
+import kovan from '../deployments/kovan.json'
+
+const dev = devOrNull as _RmmDeploymentJSON | null
 
 const deployments: { [chainId: number]: _RmmDeploymentJSON | undefined } = {
   [rinkeby.chainId]: rinkeby,
   [goerli.chainId]: goerli,
   [kovan.chainId]: kovan,
+  ...(dev !== null ? { [dev.chainId]: dev } : {}),
 }
 
 /**
@@ -87,6 +91,7 @@ export const _connectToDeployment = (
 
 type EthersRmmStoreOption = 'default'
 
+/** @beta */
 export interface EthersRmmConnectionOptional {
   /**
    * Creates a {@link RmmStore} returned by `store` property.
@@ -96,6 +101,7 @@ export interface EthersRmmConnectionOptional {
   readonly hasStore?: EthersRmmStoreOption
 }
 
+/** @internal */
 export function _connectToNetwork(
   provider: EthersProvider,
   signer: EthersSigner | undefined,

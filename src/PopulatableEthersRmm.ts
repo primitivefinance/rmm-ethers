@@ -122,7 +122,11 @@ export class SentEthersRmmTransaction<T = unknown>
 
 // --- Populatable Ethers ---
 
-/** A ready to send transaction with generic types. */
+/**
+ * A ready to send transaction with generic types.
+ *
+ * @beta
+ */
 export interface PopulatedRmmTransaction<P = unknown, T extends SentRmmTransaction = SentRmmTransaction> {
   /** Implementable populated transaction object. */
   readonly rawPopulatedTransaction: P
@@ -262,13 +266,9 @@ export class PopulatableEthersRmm
     const { primitiveManager } = _getContracts(this._readable.connection)
 
     return new PopulatedEthersSignerTransaction(rawPopulatedTransaction, this._readable.connection, ({ logs }) => {
-      let created = false
-
-      try {
-        ;[created] = primitiveManager
-          .extractEvents(logs, 'Create')
-          .map(({ args: { poolId } }) => poolId === params.pool.poolId)
-      } catch (e) {}
+      const [created] = primitiveManager
+        .extractEvents(logs, 'Create')
+        .map(({ args: { poolId } }) => poolId === params.pool.poolId)
 
       let [newPosition] = created
         ? [new Position(params.pool)] // FIX!: no way to get new liquidity from created pool
