@@ -15,7 +15,7 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types'
 const POOL_DEPLOYMENTS_SAVE = path.join('./deployments', 'default', 'pools.json')
 
 // --- Config ---
-const DEFAULT_MATURITY = 1641974122 // Wed Jan 12 2022 07:55:22 GMT+0000
+const DEFAULT_MATURITY = 1642809599 // Fri Jan 21 2022 23:59:59 GMT+0000
 const DEFAULT_GAMMA = 0.99
 const yveCRVDAO = {
   name: 'yveCRV-DAO',

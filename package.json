@@ -41,6 +41,7 @@
     "docs": "run-s docs:*",
     "docs:collect-apis": "node scripts/collect-api.js",
     "docs:api-documenter": "api-documenter generate -i temp/sdk-api -o docs/sdk",
+    "copy-deployments": "ts-node scripts/copy-deployments.ts",
     "delete-dev-deployments": "ts-node scripts/delete-dev-deployments.ts"
   },
   "author": "Primitive",

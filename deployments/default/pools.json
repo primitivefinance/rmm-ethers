@@ -65,28 +65,5 @@
       }
     }
   },
-  "1337": {
-    "yveCRV-DAO": {
-      "name": "RMM-LP-yveCRV/USDC",
-      "risky": {
-        "address": "0x144DF2b0E4682FD459fF9DDfEe8dE040527aacCE",
-        "name": "Test yveCRV-DAO yVault",
-        "symbol": "yveCRV",
-        "decimals": 18
-      },
-      "stable": {
-        "address": "0x27b38ef77306CcdddDA52dE133e32bf2E1d44890",
-        "name": "Test USD Coin",
-        "symbol": "USDC",
-        "decimals": 6
-      },
-      "pools": {
-        "0xa66765d6fb72c3b093e32edfaf407be129292a95a0498b0cfc84f826673b1997": "RMM-LP-yveCRV/USDC-2.75-1-1641974122-0.99",
-        "0x0d1badbd89a8cbab04b1ff337e450df51c683a179579cf5ce62f11036992db85": "RMM-LP-yveCRV/USDC-2.75-1.25-1641974122-0.99",
-        "0xaaa625791414f684f401c7ccc9b18124097a8d6b9cba49d2b0e1e84a238b843c": "RMM-LP-yveCRV/USDC-2.75-1.5-1641974122-0.99",
-        "0x88a5b593a9183360d065eefcd9a8be0a91288041effeca0c54233f162e9a6924": "RMM-LP-yveCRV/USDC-3-1.25-1641974122-0.99",
-        "0xa5e5059fcb2edf72296443910084f6120a4845b9f679e664205c620749bfac3a": "RMM-LP-yveCRV/USDC-3-1.5-1641974122-0.99"
-      }
-    }
-  }
+  "1337": {}
 }
