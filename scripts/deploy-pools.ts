@@ -10,7 +10,7 @@ import { deployPool } from '../utils/deployPool'
 import { deployEngine } from '../utils/deployEngine'
 import { PoolConfigType, PoolDeployer, PoolDeployments } from '../utils/poolDeployer'
 
-const POOL_DEPLOYMENTS_SAVE = path.join('./deployments', 'default', 'pools.json')
+export const POOL_DEPLOYMENTS_SAVE = path.join('./deployments', 'default', 'pools.json')
 
 // --- Config ---
 const DEFAULT_MATURITY = 1642809599 // Fri Jan 21 2022 23:59:59 GMT+0000
@@ -73,23 +73,8 @@ type CalibrationType = { strike: string; sigma: string; maturity: string; gamma:
 
 export const POOL_CONFIG_TO_DEPLOY = ribbon
 
-async function main() {
-  setSilent(false)
-
-  const signer: Signers = await hre.run('useSigner')
-  const from = await signer.getAddress()
-  log(`Using signer: ${from}`)
-
-  const rmm = await hre.connect(signer)
-
-  log(`Connected to RMM: `, rmm.connection.addresses)
-
-  const chainId = rmm.connection.chainId
-  log(`Using chainId: ${chainId}`)
-
-  if (chainId === 1) throw new Error('Do not use this in prod!')
-
-  const deployer = new PoolDeployer(chainId, POOL_DEPLOYMENTS_SAVE, POOL_CONFIG_TO_DEPLOY, rmm)
+export async function deployPools(deployer: PoolDeployer) {
+  const from = await deployer.rmm.connection.signer.getAddress()
 
   try {
     log(`Attempting to load or deploy tokens to deploy pools for`)
@@ -113,7 +98,7 @@ async function main() {
 
       // if devnet, sync with current timestamp
       const now = Time.now
-      if (chainId === 1337) await hre.network.provider.send('evm_mine', [now])
+      if (deployer.chainId === 1337) await hre.network.provider.send('evm_mine', [now])
 
       if (typeof deployer.token0?.decimals === 'undefined')
         throw new Error('Token decimals for risky asset are undefined')
@@ -135,7 +120,7 @@ async function main() {
       }
 
       // Get engine, or deploy an engine
-      const engine = await deployEngine(rmm, riskyToken.address, stableToken.address)
+      const engine = await deployEngine(deployer.rmm, riskyToken.address, stableToken.address)
       log(`Got engine or deployed engine: ${engine.address}`)
 
       // get default parameters
@@ -155,11 +140,11 @@ async function main() {
 
         const pool: Pool = Pool.fromReferencePrice(
           referencePrice,
-          rmm.connection.addresses.primitiveFactory,
+          deployer.rmm.connection.addresses.primitiveFactory,
           risky,
           stable,
           calibration,
-          chainId,
+          deployer.chainId,
           delLiquidity.toString(),
         )
         poolEntities.push(pool)
@@ -204,7 +189,7 @@ async function main() {
           loadedDeployment?.pools && Object.keys(loadedDeployment.pools).filter(id => id === pool.poolId).length > 0
 
         if (!engineExists || !poolIdExists) {
-          const details = await deployPool(rmm, pool, options)
+          const details = await deployPool(deployer.rmm, pool, options)
           if (typeof details === 'undefined') continue
           const poolId = details.newPosition.pool.poolId
 
@@ -219,6 +204,27 @@ async function main() {
   } catch (e) {
     log('Thrown when creating pools', e)
   }
+}
+
+export async function main() {
+  setSilent(false)
+
+  const signer: Signers = await hre.run('useSigner')
+  const from = await signer.getAddress()
+  log(`Using signer: ${from}`)
+
+  const rmm = await hre.connect(signer)
+
+  log(`Connected to RMM: `, rmm.connection.addresses)
+
+  const chainId = rmm.connection.chainId
+  log(`Using chainId: ${chainId}`)
+
+  if (chainId === 1) throw new Error('Do not use this in prod!')
+
+  const deployer = new PoolDeployer(chainId, POOL_DEPLOYMENTS_SAVE, POOL_CONFIG_TO_DEPLOY, rmm)
+
+  await deployPools(deployer)
 }
 
 main()
