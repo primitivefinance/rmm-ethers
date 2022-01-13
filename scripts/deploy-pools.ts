@@ -17,6 +17,7 @@ const DEFAULT_MATURITY = 1642809599 // Fri Jan 21 2022 23:59:59 GMT+0000
 const DEFAULT_GAMMA = 0.99
 
 const defaultParams = { maturity: DEFAULT_MATURITY, gamma: DEFAULT_GAMMA }
+const defaultStable = { contractName: 'ERC20', name: 'Test USD Coin', symbol: 'USDC', decimals: 6 }
 const yveCRVDAO = {
   name: 'yveCRV-DAO',
   risky: {
@@ -25,12 +26,7 @@ const yveCRVDAO = {
     symbol: 'yveCRV',
     decimals: 18,
   },
-  stable: {
-    contractName: 'ERC20',
-    name: 'Test USD Coin',
-    symbol: 'USDC',
-    decimals: 6,
-  },
+  stable: { ...defaultStable },
   spot: 2.42,
   pools: [
     { strike: 2.75, sigma: 1, ...defaultParams },
@@ -42,16 +38,40 @@ const yveCRVDAO = {
   ],
 }
 
+const ribbon = {
+  name: 'Ribbon',
+  risky: {
+    contractName: 'ERC20',
+    name: 'Test Ribbon',
+    symbol: 'RBN',
+    decimals: 18,
+  },
+  stable: { ...defaultStable },
+  spot: 3.22,
+  pools: [
+    { strike: 4.2, sigma: 1, ...defaultParams },
+    { strike: 4.2, sigma: 1.25, ...defaultParams },
+    { strike: 4.2, sigma: 1.5, ...defaultParams },
+    { strike: 5.0, sigma: 1, ...defaultParams },
+    { strike: 5.0, sigma: 1.25, ...defaultParams },
+    { strike: 5.0, sigma: 1.5, ...defaultParams },
+  ],
+}
+
 interface IAggregatedPools {
   vecrv: PoolConfigType
+  rbn: PoolConfigType
 }
 
 const AGGREGATED_POOLS: IAggregatedPools = {
   vecrv: yveCRVDAO,
+  rbn: ribbon,
 }
 
 type Signers = Signer | DefenderRelaySigner
 type CalibrationType = { strike: string; sigma: string; maturity: string; gamma: string }
+
+export const POOL_CONFIG_TO_DEPLOY = ribbon
 
 async function main() {
   setSilent(false)
@@ -69,7 +89,7 @@ async function main() {
 
   if (chainId === 1) throw new Error('Do not use this in prod!')
 
-  const deployer = new PoolDeployer(chainId, POOL_DEPLOYMENTS_SAVE, yveCRVDAO, rmm)
+  const deployer = new PoolDeployer(chainId, POOL_DEPLOYMENTS_SAVE, POOL_CONFIG_TO_DEPLOY, rmm)
 
   try {
     log(`Attempting to load or deploy tokens to deploy pools for`)
@@ -184,11 +204,9 @@ async function main() {
           loadedDeployment?.pools && Object.keys(loadedDeployment.pools).filter(id => id === pool.poolId).length > 0
 
         if (!engineExists || !poolIdExists) {
-          const {
-            newPosition: {
-              pool: { poolId },
-            },
-          } = await deployPool(rmm, pool, options)
+          const details = await deployPool(rmm, pool, options)
+          if (typeof details === 'undefined') continue
+          const poolId = details.newPosition.pool.poolId
 
           deployedPools = Object.assign(deployedPools, {
             [poolId]: poolSymbol,

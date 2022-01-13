@@ -18,7 +18,7 @@ export async function deployPool(
   rmm: EthersRmm,
   pool: Pool,
   options: AllocateOptions,
-): Promise<PositionAdjustmentDetails> {
+): Promise<PositionAdjustmentDetails | undefined> {
   const referencePrice = pool.referencePriceOfRisky?.float
   if (typeof referencePrice === 'undefined') throw new Error('Requires a reference price on pool object')
 
@@ -39,12 +39,11 @@ export async function deployPool(
     `Creating pool for pair ${pool.risky.symbol}/${pool.stable.symbol} at implied spot price of: ${pool.referencePriceOfRisky?.display}`,
   )
 
-  let positionAdjustmentDetails: PositionAdjustmentDetails
+  let positionAdjustmentDetails: PositionAdjustmentDetails | undefined = undefined
   try {
     positionAdjustmentDetails = await rmm.createPool({ pool, options })
   } catch (e) {
     log(`Failed on attempting to createPool with code: ${(e as any)?.code ? (e as any).code : e}`)
-    return e
   }
 
   return positionAdjustmentDetails
