@@ -16,7 +16,32 @@
       },
       "pools": {
         "0x6da110366af04f383a7d3010fe77eb51b6ef448dbc37aeab9312bd89f491645f": "RMM-LP-yveCRV/USDC-3-1.25-1641974122-0.99",
-        "0x418f62669ee0d4b3b98d60f67c0aa43ee501d8c211650e6f0077cf0bf5e4d6cf": "RMM-LP-yveCRV/USDC-3-1.5-1641974122-0.99"
+        "0x418f62669ee0d4b3b98d60f67c0aa43ee501d8c211650e6f0077cf0bf5e4d6cf": "RMM-LP-yveCRV/USDC-3-1.5-1641974122-0.99",
+        "0xc76c44848130ad14f3ee1b2973123a2a4d7679c6141da90fd44bcccc71acf959": "RMM-LP-yveCRV/USDC-2.75-1.25-1642809599-0.99",
+        "0xc065896893c13eb2295027d6f394bdbc42f0da2a41f014ed37528a5ee1fd30d2": "RMM-LP-yveCRV/USDC-3-1-1642809599-0.99",
+        "0x9897ed81de71395ddf2b29672f9e243ab9c37590024e458538005abb2414bd07": "RMM-LP-yveCRV/USDC-3-1.25-1642809599-0.99"
+      }
+    },
+    "Ribbon": {
+      "name": "RMM-LP-RBN/USDC",
+      "risky": {
+        "address": "0xcE5497AC20f3C505e74ECF63FD22Bf7e3914Cb4A",
+        "name": "Test Ribbon",
+        "symbol": "RBN",
+        "decimals": 18
+      },
+      "stable": {
+        "address": "0x2d21DEa114EDF14055E15f3f4610f503d68d6660",
+        "name": "Test USD Coin",
+        "symbol": "USDC",
+        "decimals": 6
+      },
+      "pools": {
+        "0x4648943ec5c956e7644d0c7643d758b8f3a52e2b257a55f13d5776cc1c636b0a": "RMM-LP-RBN/USDC-5-1.5-1642809599-0.99",
+        "0xfe66aa99a1d3b65395f511aace4aa0f22240a21ad5867cd0f71fdd9ed7501593": "RMM-LP-RBN/USDC-4.2-1-1642809599-0.99",
+        "0x11d25b2369380c9b240a9685402a342e10489e3daf6bebe8c0b58942b6f4164b": "RMM-LP-RBN/USDC-4.2-1.25-1642809599-0.99",
+        "0xf4807db3bd22e8a953a55a90b64ee232da260bb01d37ab9cbd55107b81a6d6bc": "RMM-LP-RBN/USDC-4.2-1.5-1642809599-0.99",
+        "0x8275240c9c57fda26bf5243668c0cb160de2c13de6c4d64a600d4808ad716c9b": "RMM-LP-RBN/USDC-5-1-1642809599-0.99"
       }
     }
   },
@@ -66,26 +91,27 @@
     }
   },
   "1337": {
-    "yveCRV-DAO": {
-      "name": "RMM-LP-yveCRV/USDC",
+    "Ribbon": {
+      "name": "RMM-LP-RBN/USDC",
       "risky": {
-        "address": "0x144DF2b0E4682FD459fF9DDfEe8dE040527aacCE",
-        "name": "Test yveCRV-DAO yVault",
-        "symbol": "yveCRV",
+        "address": "0x366912E7E13f143152B2Dba0C1C7d14Cb3d3d3e3",
+        "name": "Test Ribbon",
+        "symbol": "RBN",
         "decimals": 18
       },
       "stable": {
-        "address": "0x27b38ef77306CcdddDA52dE133e32bf2E1d44890",
+        "address": "0xA06489202bFa6f4ef79b15D657A1045e40F574ec",
         "name": "Test USD Coin",
         "symbol": "USDC",
         "decimals": 6
       },
       "pools": {
-        "0xa66765d6fb72c3b093e32edfaf407be129292a95a0498b0cfc84f826673b1997": "RMM-LP-yveCRV/USDC-2.75-1-1641974122-0.99",
-        "0x0d1badbd89a8cbab04b1ff337e450df51c683a179579cf5ce62f11036992db85": "RMM-LP-yveCRV/USDC-2.75-1.25-1641974122-0.99",
-        "0xaaa625791414f684f401c7ccc9b18124097a8d6b9cba49d2b0e1e84a238b843c": "RMM-LP-yveCRV/USDC-2.75-1.5-1641974122-0.99",
-        "0x88a5b593a9183360d065eefcd9a8be0a91288041effeca0c54233f162e9a6924": "RMM-LP-yveCRV/USDC-3-1.25-1641974122-0.99",
-        "0xa5e5059fcb2edf72296443910084f6120a4845b9f679e664205c620749bfac3a": "RMM-LP-yveCRV/USDC-3-1.5-1641974122-0.99"
+        "0xf947b44087fd0b226921bf18be63d36de2ab01617234726291f6163e85eef094": "RMM-LP-RBN/USDC-4.2-1-1642809599-0.99",
+        "0x764a049311cf889d9551809115aa5102c7c40ccf2ad871625dd499d5a41483fb": "RMM-LP-RBN/USDC-4.2-1.25-1642809599-0.99",
+        "0x60f17ea7734d8e3607ef404dad6555407708d919ec2753d01f69ba311b496c86": "RMM-LP-RBN/USDC-4.2-1.5-1642809599-0.99",
+        "0x7500bedcfd272a244bb9e5780b92a0eebc03d2aa5dfee7baadb9fa4c594bf11f": "RMM-LP-RBN/USDC-5-1-1642809599-0.99",
+        "0x709d23955409597147ee8c320842b18313b44aa02bc546832b4b84d22ee89a14": "RMM-LP-RBN/USDC-5-1.25-1642809599-0.99",
+        "0x0fda7cd872b46783ddeaf875d04bc33cc598d7574b3220221ebdf697fdde6652": "RMM-LP-RBN/USDC-5-1.5-1642809599-0.99"
       }
     }
   }

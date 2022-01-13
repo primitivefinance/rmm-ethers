@@ -1764,22 +1764,22 @@
     "@primitivefi/rmm-core" "2.0.0-beta.5"
     base64-sol "^1.1.0"
 
-"@primitivefi/rmm-math@^2.0.0-beta.2":
-  version "2.0.0-beta.2"
-  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-math/-/rmm-math-2.0.0-beta.2.tgz#97fed84c645c0cd0e8a00c47936ba413d532057a"
-  integrity sha512-88bEYPHCHD3f2y1KvyoVr67ydTZli7NnORT+SAhKsXD8n2UnmfrowNNvHWfDpnx84B0UXscEJZGGYiyxa7UYQg==
+"@primitivefi/rmm-math@^2.0.0-beta.3":
+  version "2.0.0-beta.3"
+  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-math/-/rmm-math-2.0.0-beta.3.tgz#07427901672105ee5b462fe9746b55590747fc38"
+  integrity sha512-zyZHNQHwM1GOzmNWWPwvndq/xOSqQKRMXmmaVljxJPJqpdzliLB2O074dYttwMX1972csn0ZfsWQk+hiDo67Cw==
   dependencies:
     gaussian "^1.2.0"
     numeric "^1.2.6"
 
-"@primitivefi/rmm-sdk@^1.0.3-beta.5":
-  version "1.0.3-beta.5"
-  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-sdk/-/rmm-sdk-1.0.3-beta.5.tgz#8b5b6725975315b4718582fb0031095b101b5f0c"
-  integrity sha512-qb67JaYVD7trj7sKcn28Kd7wiqB6+JfaBdZeJIr7p5Zf4M/Wsm8hZiJbZtgbOzB9rU10UqVTI74vQGeEKMb0cA==
+"@primitivefi/rmm-sdk@^1.1.0-beta.5":
+  version "1.1.0-beta.5"
+  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-sdk/-/rmm-sdk-1.1.0-beta.5.tgz#7afffe2acf30cfd0c31e8f10ddef31be2f12a2f8"
+  integrity sha512-mhIrJpykjwgfZGqWgsHiGLz8H7ENc4OPxVlEfGdzCEYMzye6H9Uw8GK0CPeKk14HfwRTKZxErt4wI518vZMszQ==
   dependencies:
     "@primitivefi/rmm-core" "^2.0.0-beta.5"
     "@primitivefi/rmm-manager" "^2.0.0-beta.5"
-    "@primitivefi/rmm-math" "^2.0.0-beta.2"
+    "@primitivefi/rmm-math" "^2.0.0-beta.3"
     "@uniswap/sdk-core" "^3.0.1"
     tiny-invariant "^1.1.0"
     tiny-warning "^1.0.3"

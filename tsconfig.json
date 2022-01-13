@@ -15,6 +15,6 @@
     "downlevelIteration": true,
     "importHelpers": true
   },
-  "include": ["./scripts", "./test", "scripts", "src"],
+  "include": ["./test", "scripts", "src", "utils"],
   "files": ["./hardhat.config.ts"]
 }

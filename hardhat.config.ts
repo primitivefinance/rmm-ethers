@@ -2,9 +2,9 @@ import 'hardhat/types/runtime'
 import { task, subtask, HardhatUserConfig, types, extendEnvironment, extendConfig } from 'hardhat/config'
 import { HardhatConfig, HardhatRuntimeEnvironment, NetworkUserConfig } from 'hardhat/types'
 
-import { config as dotenvConfig } from 'dotenv'
-import path, { resolve } from 'path'
 import fs from 'fs'
+import path, { resolve } from 'path'
+import { config as dotenvConfig } from 'dotenv'
 dotenvConfig({ path: resolve(__dirname, './.env') })
 
 import '@typechain/hardhat'
@@ -21,6 +21,7 @@ import { DefenderRelayProvider, DefenderRelaySigner } from 'defender-relay-clien
 
 import { _RmmDeploymentJSON, _connectToContracts } from './src/contracts'
 import { deployAndSetupContracts, setSilent } from './utils/deploy'
+import { EthersRmm } from './src'
 
 // --- Env ---
 const MNEMONIC = process.env.MNEMONIC || ''
@@ -149,6 +150,7 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
 declare module 'hardhat/types/runtime' {
   interface HardhatRuntimeEnvironment {
     deployRmm: (deployer: Signers, wethAddress: string, overrides?: Overrides) => Promise<_RmmDeploymentJSON>
+    connect: (signer: Signers) => Promise<EthersRmm>
   }
 }
 
@@ -158,6 +160,18 @@ extendEnvironment((env: HardhatRuntimeEnvironment) => {
     if (_isDev) setSilent(false)
     const deployment = await deployAndSetupContracts(deployer, _isDev, wethAddress, overrides)
     return { ...deployment, version: getContractsVersion() }
+  }
+
+  env.connect = async (signer: Signers) => {
+    let rmm: EthersRmm
+    try {
+      rmm = await EthersRmm.connect(signer)
+    } catch (e) {
+      console.error(`Thrown on attempting to connect to RMM protocol`, e)
+      throw new Error(`${e}`)
+    }
+
+    return rmm
   }
 })
 
