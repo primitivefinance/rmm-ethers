@@ -190,7 +190,7 @@ async function onRemove(rmm: EthersRmm, pool: Pool, options: RemoveOptions): Pro
 }
 ```
 
-### 🧮 Usage locally
+## 🧮 Usage locally
 
 Before running any command, make sure to install dependencies:
 
