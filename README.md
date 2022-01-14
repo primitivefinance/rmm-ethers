@@ -49,6 +49,8 @@ await EthersRmm.connect(signerOrProvider)
 
 ## ✏️ Usage as a Package
 
+This package is designed to extend the [rmm-sdk](https://github.com/primitivefinance/rmm-sdk) package. The SDK has the entity models and interfaces that are used by rmm-ethers to send transactions.
+
 ### 🪝 As a react hook:
 
 Here is an example of a React hook that makes use of web3-react and SWR:
@@ -107,7 +109,7 @@ async function getPoolPosition(pool: Pool, account: string): Promise<Position> {
 
 ## Adjusting Positions
 
-When allocating or removing liquidity, the arguments must match the respective interfaces, which live in the rmm-sdk:
+When allocating or removing liquidity, the arguments must match the respective interfaces, which live in the [rmm-sdk](https://github.com/primitivefinance/rmm-sdk):
 
 ```typescript
 /** Flag to use a native currency in a transaction.  */
