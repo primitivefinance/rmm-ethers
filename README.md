@@ -4,8 +4,6 @@
 
 > Easily connect and transact with RMM protocol.
 
----
-
 ## 🧩 Features
 
 - 🌲 Deploy RMM protocol
@@ -15,15 +13,13 @@
 - 🎁 Transfer positions
 - 🔭 Read protocol data
 
----
-
 > This software is in Alpha.
 
 ## 📦 Installation
 
 Installing locally:
 
-```
+```bash
 # Clone the repository
 git clone https://github.com/primitivefinance/rmm-ethers.git
 
@@ -33,7 +29,7 @@ yarn install
 
 Installing as a package:
 
-```
+```bash
 # Using yarn
 yarn add @primitivefi/rmm-ethers
 
@@ -43,11 +39,11 @@ npm i @primitivefi/rmm-ethers
 
 Use it by connecting with a signer or provider:
 
-```
-# Import the EthersRmm class
+```typescript
+// Import the EthersRmm class
 import { EthersRmm } from '@primitivefi/rmm-ethers'
 
-# Use the class by connecting to a deployment
+// Use the class by connecting to a deployment
 await EthersRmm.connect(signerOrProvider)
 ```
 
@@ -57,9 +53,9 @@ await EthersRmm.connect(signerOrProvider)
 
 Here is an example of a React hook that makes use of web3-react and SWR:
 
-```
+```typescript
 import useSWR, { SWRResponse } from 'swr'
-import {useWeb3React} from 'web3-react'
+import { useWeb3React } from 'web3-react'
 import { Signer } from '@ethersproject/abstract-signer'
 import { EthersRmm } from '@primitivefi/rmm-ethers'
 
@@ -80,7 +76,7 @@ export function useRmmProtocol(suspense = false): SWRResponse<EthersRmm, Error> 
       dedupingInterval: 60 * 1000,
       refreshInterval: 60 * 1000,
       suspense,
-    }
+    },
   )
 
   return result
@@ -89,23 +85,23 @@ export function useRmmProtocol(suspense = false): SWRResponse<EthersRmm, Error> 
 
 ### 🌊 Fetch a pool
 
-```
+```typescript
 import { Pool } from '@primitivefi/rmm-sdk'
 import { EthersRmm, Position } from '@primitivefi/rmm-ethers'
 
 async function getPool(poolId: string): Promise<Pool> {
-  return rmm.getPool(poolId).then((data) => data)
+  return rmm.getPool(poolId).then(data => data)
 }
 ```
 
 ### ⚱️ Fetching pool liquidity positions
 
-```
+```typescript
 import { Pool } from '@primitivefi/rmm-sdk'
 import { EthersRmm, Position } from '@primitivefi/rmm-ethers'
 
 async function getPoolPosition(pool: Pool, account: string): Promise<Position> {
-  return rmm.getPosition(pool, account).then((data) => data)
+  return rmm.getPosition(pool, account).then(data => data)
 }
 ```
 
@@ -113,7 +109,7 @@ async function getPoolPosition(pool: Pool, account: string): Promise<Position> {
 
 When allocating or removing liquidity, the arguments must match the respective interfaces, which live in the rmm-sdk:
 
-```
+```typescript
 /** Flag to use a native currency in a transaction.  */
 export interface NativeOptions {
   useNative?: NativeCurrency
@@ -154,19 +150,7 @@ export interface LiquidityOptions {
   delLiquidity: Wei
 }
 
-/**
- * Provide liquidity argument details.
- *
- * @param recipient Target account that receives liquidity.
- * @param delRisky Amount of risky tokens to provide as liquidity.
- * @param delStable Amount of stable tokens to provide as Liquidity.
- * @param delLiquidity Desired amount of liquidity to mint.
- * @param fromMargin Use margin balance to pay for liquidity deposit.
- * @param slippageTolerance Maximum difference in liquidity received from expected liquidity.
- * @param createPool Create a pool and allocate liquidity to it.
- *
- * @beta
- */
+/** Provide liquidity argument details. */
 export interface AllocateOptions extends PermitTokens, LiquidityOptions, RecipientOptions, NativeOptions, Deadline {
   fromMargin: boolean
   slippageTolerance: Percentage
@@ -180,22 +164,27 @@ export interface RemoveOptions extends LiquidityOptions, RecipientOptions, Nativ
   toMargin: boolean
   slippageTolerance: Percentage
 }
-
 ```
 
 ### 🕳️ Allocating liquidity
 
-```
-async function onAllocate(pool: Pool, options: AllocateOptions): Promise<PositionAdjustmentDetails> {
-    return rmm.allocate({ pool, options }).then(data => data)
+```typescript
+import { Pool, AllocateOptions } from '@primitivefi/rmm-sdk'
+import { EthersRmm, PositionAdjustmentDetails } from '@primitivefi/rmm-ethers'
+
+async function onAllocate(rmm: EthersRmm, pool: Pool, options: AllocateOptions): Promise<PositionAdjustmentDetails> {
+  return rmm.allocate({ pool, options }).then(data => data)
 }
 ```
 
 ### 💎 Removing liquidity
 
-```
-async function onRemove(pool: Pool, options: RemoveOptions): Promise<PositionAdjustmentDetails> {
-    return rmm.remove({ pool, options }).then(data => data)
+```typescript
+import { Pool, AllocateOptions } from '@primitivefi/rmm-sdk'
+import { EthersRmm, PositionAdjustmentDetails } from '@primitivefi/rmm-ethers'
+
+async function onRemove(rmm: EthersRmm, pool: Pool, options: RemoveOptions): Promise<PositionAdjustmentDetails> {
+  return rmm.remove({ pool, options }).then(data => data)
 }
 ```
 
@@ -203,7 +192,7 @@ async function onRemove(pool: Pool, options: RemoveOptions): Promise<PositionAdj
 
 Before running any command, make sure to install dependencies:
 
-```sh
+```shell
 $ yarn install
 ```
 
@@ -211,7 +200,7 @@ $ yarn install
 
 Compile the smart contracts with Hardhat:
 
-```sh
+```shell
 $ yarn compile
 ```
 
@@ -219,7 +208,7 @@ $ yarn compile
 
 Run the Mocha tests:
 
-```sh
+```shell
 $ yarn test
 ```
 
@@ -227,7 +216,7 @@ $ yarn test
 
 Deploy the protocol to a network:
 
-```sh
+```shell
 $ yarn deploy --network nameOfNetwork
 ```
 
@@ -246,7 +235,7 @@ Here are the options for the `deploy` task:
 
 Deploy pools in the config of the `deploy-pools.ts` script:
 
-```sh
+```shell
 $ yarn deploy:pools --network nameOfNetwork
 ```
 
@@ -254,25 +243,19 @@ Creating RMM pools is a process that requires connecting to the protocol, fetchi
 
 All the logic executed by a hardhat script must exist in the script file. Here is an example:
 
-```
+```typescript
 import hre from 'hardhat'
-import {EthersRmm} from 'src/EthersRmm'
-import {deployPools} from 'utils/deployPools'
-import {poolDeployer} from 'utils/poolDeployer/
+import { EthersRmm } from 'src/EthersRmm'
+import { deployPools } from 'utils/deployPools'
+import { poolDeployer } from 'utils/poolDeployer'
 
 export async function main() {
-  setSilent(false)
-
   const signer: Signers = await hre.run('useSigner')
   const from = await signer.getAddress()
-  log(`Using signer: ${from}`)
 
   const rmm = await hre.connect(signer)
 
-  log(`Connected to RMM: `, rmm.connection.addresses)
-
   const chainId = rmm.connection.chainId
-  log(`Using chainId: ${chainId}`)
 
   if (chainId === 1) throw new Error('Do not use this in prod!')
 
@@ -287,10 +270,37 @@ main()
     console.error(error)
     process.exit(1)
   })
-
-
 ```
 
-### Credits
+## 🛡️ Use with Open Zeppelin Defender Relays
+
+The OZ Defender relayers are a safer way to execute transactions on-chain.
+
+The `hardhat.config.ts` is extended to include OZ defender relay API key and secret:
+
+```typescript
+defender: {
+    [chainIds.rinkeby]: {
+      apiKey: RELAY_RINKEBY_API || '',
+      apiSecret: RELAY_RINKEBY_SECRET || '',
+    },
+}
+```
+
+Adding this to the hardhat config will expose the relay signer through the task `useSigner`.
+
+This task is currently only used in the `deployPools.ts` script, so pools can be deployed safely from the OZ defender relay.
+
+🖋️ `useSigner` - subtask
+
+If the task is run using a `--network` flag which has an OZ relayer config, this task will return the `Signer` object for the relayer. Else, use signer will default to the `ethers.getSigners()`. This subtask can be used in custom scripts so you can choose to use a relayer or a private key stored in `.env`.
+
+- `--i` (optional): Index of the signer to use from `ethers.getSigners()`
+
+## ⛑ Contribute
+
+Feel free to suggest changes by opening a pull request, or posting an issue. There is a dedicated `dev` channel in the [Primitive discord](https://discord.gg/primitive).
+
+## Credits
 
 Inspired by [Liquity Ethers](https://github.com/liquity/dev/tree/main/packages/lib-ethers).
