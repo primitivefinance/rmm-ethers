@@ -192,32 +192,32 @@ async function onRemove(rmm: EthersRmm, pool: Pool, options: RemoveOptions): Pro
 
 Before running any command, make sure to install dependencies:
 
-```shell
-$ yarn install
+```bash
+yarn install
 ```
 
 ### Compile
 
 Compile the smart contracts with Hardhat:
 
-```shell
-$ yarn compile
+```bash
+yarn compile
 ```
 
 ### Test
 
 Run the Mocha tests:
 
-```shell
-$ yarn test
+```bash
+yarn test
 ```
 
 ## 📃 Deploy RMM
 
 Deploy the protocol to a network:
 
-```shell
-$ yarn deploy --network nameOfNetwork
+```bash
+yarn deploy --network nameOfNetwork
 ```
 
 This will call a hardhat task that deploys the RMM protocol contracts from a loaded signer and saves the addresses to /deployments.
@@ -235,8 +235,8 @@ Here are the options for the `deploy` task:
 
 Deploy pools in the config of the `deploy-pools.ts` script:
 
-```shell
-$ yarn deploy:pools --network nameOfNetwork
+```bash
+yarn deploy:pools --network nameOfNetwork
 ```
 
 Creating RMM pools is a process that requires connecting to the protocol, fetching token metadata, and building the transaction's arguments. This script handles loading tokens from a saved pool deployment, located in `/deployments/*/pools.json`.
