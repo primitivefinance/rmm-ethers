@@ -272,6 +272,8 @@ main()
 
 > Warning: Currently failing for node versions above 14.7.4. Unresolved promises are not handled in the higher node versions, and instead the process is exited with a non-zero error code.
 
+> Work in progress: This script is still being improved! Consider it an alpha version.
+
 Deploy pools in the config of the `deploy-pools.ts` script:
 
 ```bash
