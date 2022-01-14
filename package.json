@@ -26,6 +26,7 @@
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "deploy": "npx hardhat deploy",
+    "deploy:engine": "npx hardhat run ./scripts/deploy-engine.ts",
     "deploy:devnet": "run-s \"prepare\" \"deploy --network dev\" \"prepare:deployments\" \"deploy:pools --network dev\"",
     "deploy:testnet": "run-s \"prepare\" \"deploy --network rinkeby --defender\" \"deploy --network kovan --defender\" \"deploy --network goerli --defender\"",
     "deploy:testnet:pools": "run-s \"prepare\" \"deploy:pools --network rinkeby\" \"deploy:pools --network kovan\" \"deploy:pools --network goerli\"",

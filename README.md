@@ -13,9 +13,9 @@
 - 🎁 Transfer positions
 - 🔭 Read protocol data
 
-> This software is in Alpha.
-
 ## 📦 Installation
+
+> This software is in Alpha.
 
 Installing locally:
 
@@ -222,7 +222,7 @@ Deploy the protocol to a network:
 yarn deploy --network nameOfNetwork
 ```
 
-This will call a hardhat task that deploys the RMM protocol contracts from a loaded signer and saves the addresses to /deployments.
+This will call a hardhat task that deploys the RMM protocol contracts from a loaded signer and saves the addresses to `/deployments`.
 
 Here are the options for the `deploy` task:
 
@@ -230,6 +230,43 @@ Here are the options for the `deploy` task:
 - `--channel` (optional): Directory name in /deployments/ to save the deployment to.
 - `--gasPrice` (optinal): Price to pay for gas.
 - `--testweth` (optional): Only for test networks, allows specifying a WETH9 address.
+
+### Deploy Primitive Engines - Pair contracts
+
+```bash
+yarn deploy:engine --network nameOfNetwork
+```
+
+This is a script that runs which requires two of the token addresses. Here is the script, which should be edited to suit the deployment needs:
+
+```typescript
+import hre from 'hardhat'
+import { Signer } from '@ethersproject/abstract-signer'
+import { DefenderRelaySigner } from 'defender-relay-client/lib/ethers'
+import { deployEngine } from '../utils/deployEngine'
+
+type Signers = Signer | DefenderRelaySigner
+
+export async function main() {
+  const signer: Signers = await hre.run('useSigner')
+
+  const rmm = await hre.connect(signer)
+  const chainId = rmm.connection.chainId
+  if (chainId === 1) throw new Error('Do not use this in prod!')
+
+  const risky = '0xc778417E063141139Fce010982780140Aa0cD5Ab' // rinkeby:WETH: FIX
+  const stable = '0x522064c1EafFEd8617BE64137f66A71D6C5c9aA3' // rinkeby:USDC: FIX
+
+  await deployEngine(rmm, risky, stable)
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch(error => {
+    console.error(error)
+    process.exit(1)
+  })
+```
 
 ### 🪞 Deploy RMM Pools Script
 
@@ -274,6 +311,26 @@ main()
   })
 ```
 
+## 📌 Misc. Scripts
+
+Generate documentation locally:
+
+```
+yarn docs
+```
+
+Deploy to a local ganache-cli instance:
+
+```
+yarn deploy:devnet
+```
+
+Delete a local deployment to ganache-cli:
+
+```
+yarn delete-dev-deployments
+```
+
 ## 🛡️ Use with Open Zeppelin Defender Relays
 
 The OZ Defender relayers are a safer way to execute transactions on-chain.
@@ -293,9 +350,9 @@ Adding this to the hardhat config will expose the relay signer through the task 
 
 This task is currently only used in the `deployPools.ts` script, so pools can be deployed safely from the OZ defender relay.
 
-🖋️ `useSigner` - subtask
+🖋️ `useSigner`
 
-If the task is run using a `--network` flag which has an OZ relayer config, this task will return the `Signer` object for the relayer. Else, use signer will default to the `ethers.getSigners()`. This subtask can be used in custom scripts so you can choose to use a relayer or a private key stored in `.env`.
+If this subtask is run from task run with a `--network` flag, and the network has an OZ relayer config in the hardhat config file, this task will return the `Signer` object for the relayer. Else, useSigner will default to the `ethers.getSigners()`. This subtask can be used in custom scripts so you can choose to use a relayer or a private key stored in `.env`.
 
 - `--i` (optional): Index of the signer to use from `ethers.getSigners()`
 
