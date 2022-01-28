@@ -45,7 +45,7 @@ const waitForSuccess = async <T>(tx: SentEthersRmmTransaction<T>) => {
     throw new EthersTransactionFailedError('Transaction failed', receipt)
   }
 
-  return receipt.details
+  return { ...receipt.details, hash: tx.rawSentTransaction.hash }
 }
 
 /**

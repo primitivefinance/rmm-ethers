@@ -5,7 +5,15 @@ import { Contract, Signer } from 'ethers'
 import { EthersRmm } from '../src/EthersRmm'
 import { _connectToDeployment, _RmmDeploymentJSON } from '../src'
 import { EngineAddress } from '../src/TransactableRmm'
-import { AllocateOptions, Pool, PoolSides, RemoveOptions, SafeTransferOptions } from '@primitivefi/rmm-sdk'
+import {
+  AllocateOptions,
+  Pool,
+  PoolSides,
+  RemoveOptions,
+  SafeTransferOptions,
+  Swaps,
+  weiToWei,
+} from '@primitivefi/rmm-sdk'
 import TestWeth from '@primitivefi/rmm-manager/artifacts/contracts/test/WETH9.sol/WETH9.json'
 
 import { parsePercentage, parseWei, Time } from 'web3-units'
@@ -14,8 +22,6 @@ import { Position } from '../src/Position'
 const { MaxUint256 } = ethers.constants
 
 const { expect } = chai
-
-const provider = ethers.provider
 
 const connectToDeployment = async (deployment: _RmmDeploymentJSON, signer: Signer) =>
   EthersRmm._from(_connectToDeployment(deployment, signer))
@@ -28,7 +34,7 @@ const deployWeth = async (signer: Signer) => {
 }
 
 const deployTestERC20 = async (signer: Signer) => {
-  const contract = await ethers.getContractFactory('ERC20')
+  const contract = await ethers.getContractFactory('ERC20', signer)
   const t = await contract.deploy('test token', 't', 18)
   await t.deployed()
   return t
@@ -70,6 +76,7 @@ describe('RMM Ethers', () => {
 
       const engine = await rmm.createEngine({ risky: token0.address, stable: token1.address })
       expect(engine).to.not.be.undefined
+      expect(engine.hash).to.not.be.undefined
     })
   })
 
@@ -151,6 +158,15 @@ describe('RMM Ethers', () => {
 
       const details = await rmm.createPool({ pool: createPool, options })
       expect(details.params.pool.poolId).to.be.equal(createPool.poolId)
+      expect(details.hash).to.not.be.undefined
+      expect(
+        Swaps.getReportedPriceOfRisky(
+          createPool.reserveRisky.float,
+          createPool.strike.float,
+          createPool.sigma.float,
+          createPool.tau.years,
+        ),
+      ).to.be.within(refPrice - 0.01, refPrice + 0.01)
     })
 
     it('allocates liquidity to a pool', async function () {
@@ -170,19 +186,78 @@ describe('RMM Ethers', () => {
       }
 
       const details = await rmm.allocate({ pool: refreshed, options })
+      const balance = await rmm.getLiquidityBalance(pool.poolId, user0)
       expect(details.params.pool.poolId).to.be.equal(pool.poolId)
       expect(details.newPosition.equals(new Position(pool, options.delLiquidity))).to.be.true
+      expect(balance.sub(options.delLiquidity).raw.eq(balance.sub(details.newPosition.liquidity).raw)).to.be.true
+      expect(details.hash).to.not.be.undefined
+    })
+
+    it('fails to allocate 0 min liquidity', async function () {
+      const standard = { fromMargin: false, slippageTolerance: parsePercentage(0.01), recipient: user0 }
+
+      const refreshed = await rmm.getPool(pool.poolId)
+
+      const delLiquidity = parseWei(0)
+      const amounts = refreshed.liquidityQuote(delLiquidity, PoolSides.RMM_LP)
+
+      const options: AllocateOptions = {
+        delRisky: amounts.delRisky,
+        delStable: amounts.delStable,
+        delLiquidity: delLiquidity,
+        createPool: false,
+        ...standard,
+      }
+      expect(() => rmm.allocate({ pool: refreshed, options })).to.throw
+    })
+
+    it('fails to allocate 0 token amounts', async function () {
+      const standard = { fromMargin: false, slippageTolerance: parsePercentage(0.01), recipient: user0 }
+
+      const refreshed = await rmm.getPool(pool.poolId)
+
+      const delLiquidity = parseWei(0)
+      const amounts = refreshed.liquidityQuote(delLiquidity, PoolSides.RMM_LP)
+
+      const options: AllocateOptions = {
+        delRisky: parseWei(0, amounts.delRisky.decimals),
+        delStable: amounts.delStable,
+        delLiquidity: delLiquidity,
+        createPool: false,
+        ...standard,
+      }
+      expect(() => rmm.allocate({ pool: refreshed, options })).to.throw
+    })
+
+    it('fails to allocate risky with incorrect token decimals', async function () {
+      const standard = { fromMargin: false, slippageTolerance: parsePercentage(0.01), recipient: user0 }
+
+      const refreshed = await rmm.getPool(pool.poolId)
+
+      const delLiquidity = parseWei(0)
+      const amounts = refreshed.liquidityQuote(delLiquidity, PoolSides.RMM_LP)
+
+      const options: AllocateOptions = {
+        delRisky: parseWei(5, 3),
+        delStable: amounts.delStable,
+        delLiquidity: delLiquidity,
+        createPool: false,
+        ...standard,
+      }
+      expect(() => rmm.allocate({ pool: refreshed, options })).to.throw
     })
 
     it('removes liquidity from a pool', async function () {
-      const standard = { toMargin: true, fromMargin: false, slippageTolerance: parsePercentage(0.01), recipient: user0 }
+      const standard = { toMargin: true, fromMargin: false, slippageTolerance: parsePercentage(0.0), recipient: user0 }
+
+      const refreshed = await rmm.getPool(pool.poolId)
 
       // remove liquidity
-      const balance = await rmm.getLiquidityBalance(pool.poolId, user0)
+      const balance = await rmm.getLiquidityBalance(refreshed.poolId, user0)
       const amountToRemove = balance.mul(50).div(100)
       const updatedBalance = balance.sub(amountToRemove)
 
-      const { delRisky, delStable } = pool.liquidityQuote(amountToRemove, PoolSides.RMM_LP)
+      const { delRisky, delStable } = refreshed.liquidityQuote(amountToRemove, PoolSides.RMM_LP)
 
       const options: RemoveOptions = {
         delRisky: delRisky,
@@ -193,9 +268,20 @@ describe('RMM Ethers', () => {
         ...standard,
       }
 
-      const details = await rmm.remove({ pool: pool, options })
-      expect(details.params.pool.poolId).to.be.equal(pool.poolId)
-      expect(details.newPosition.equals(new Position(pool, updatedBalance))).to.be.true
+      const [bfre0, bfre1] = await Promise.all([risky.balanceOf(user0), stable.balanceOf(user0)])
+      const details = await rmm.remove({ pool: refreshed, options })
+      const [aftr0, aftr1] = await Promise.all([risky.balanceOf(user0), stable.balanceOf(user0)])
+      expect(details.params.pool.poolId).to.be.equal(refreshed.poolId)
+      expect(details.newPosition.equals(new Position(refreshed, updatedBalance))).to.be.true
+      expect(details.hash).to.not.be.undefined
+      expect(delRisky.add(bfre0.toString()).float).to.be.closeTo(
+        weiToWei(aftr0, delRisky.decimals).float,
+        delRisky.add(bfre0.toString()).float * 0.000015, // rounding deficit
+      )
+      expect(delStable.add(bfre1.toString()).float).to.be.closeTo(
+        weiToWei(aftr1, delStable.decimals).float,
+        delStable.add(bfre1.toString()).float * 0.000015, // rounding deficit
+      )
     })
 
     it('transfers liquidity', async function () {

@@ -29,6 +29,8 @@ export class TransactionFailedError<T extends FailedReceipt = FailedReceipt> ext
 
 /** @internal */ export type _PoolAction = { pool: Pool }
 
+/** @internal */ export type _TransactionHash = { hash?: string }
+
 /** Parameters of an allocate transaction. @beta */
 export type PositionAllocateParams<T = unknown> = _PoolAction & { options: AllocateOptions }
 
@@ -50,7 +52,7 @@ export type EngineCreationParams = { risky: string; stable: string }
 // --- Receipt Details ---
 
 /** Receipt details returned from a transaction adjusting a Position. @beta. */
-export interface PositionAdjustmentDetails {
+export interface PositionAdjustmentDetails extends _TransactionHash {
   /** Parameters of allocate tx. */
   params: PositionAllocateParams | PositionRemoveParams
 
@@ -65,7 +67,7 @@ export interface PositionAdjustmentDetails {
 export type EngineAddress = string
 
 /** Receipt details returned from deploying an Engine. @beta*/
-export interface EngineCreationDetails {
+export interface EngineCreationDetails extends _TransactionHash {
   /** Engine creation parameters. */
   params: EngineCreationParams
 
