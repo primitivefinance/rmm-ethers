@@ -52,8 +52,10 @@ export function _connectToNetwork(provider: EthersProvider, signer: EthersSigner
 // @beta
 export type EngineAddress = string;
 
+// Warning: (ae-incompatible-release-tags) The symbol "EngineCreationDetails" is marked as @beta, but its signature references "_TransactionHash" which is marked as @internal
+//
 // @beta
-export interface EngineCreationDetails {
+export interface EngineCreationDetails extends _TransactionHash {
     engine: EngineAddress;
     params: EngineCreationParams;
 }
@@ -246,8 +248,10 @@ export class Position {
     valueOf(side: PoolSides): Wei;
 }
 
+// Warning: (ae-incompatible-release-tags) The symbol "PositionAdjustmentDetails" is marked as @public, but its signature references "_TransactionHash" which is marked as @internal
+//
 // @public
-export interface PositionAdjustmentDetails {
+export interface PositionAdjustmentDetails extends _TransactionHash {
     createdPool?: boolean;
     // Warning: (ae-incompatible-release-tags) The symbol "newPosition" is marked as @public, but its signature references "Position" which is marked as @beta
     newPosition: Position;
@@ -507,6 +511,11 @@ export class TransactionFailedError<T extends FailedReceipt = FailedReceipt> ext
     // (undocumented)
     readonly failedReceipt: T;
 }
+
+// @internal (undocumented)
+export type _TransactionHash = {
+    hash?: string;
+};
 
 // @internal (undocumented)
 export interface _TypedLogDescription<T> extends Omit<LogDescription, 'args'> {

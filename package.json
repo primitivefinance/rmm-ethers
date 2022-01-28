@@ -73,6 +73,7 @@
     "npm-run-all": "^4.1.5",
     "prettier": "^2.3.1",
     "prettier-plugin-solidity": "^1.0.0-beta.13",
+    "semantic-release": "^19.0.2",
     "solhint": "^3.3.6",
     "solhint-plugin-prettier": "^0.0.5",
     "ts-generator": "^0.1.1",
