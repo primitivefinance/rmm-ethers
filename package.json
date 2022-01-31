@@ -22,7 +22,7 @@
     "LICENSE"
   ],
   "engines": {
-    "node": ">=16"
+    "node": "*"
   },
   "scripts": {
     "build": "yarn prepare",
@@ -85,7 +85,7 @@
     "yarn-upgrade-all": "^0.5.4"
   },
   "dependencies": {
-    "@primitivefi/rmm-sdk": "^1.1.0-rc.1",
+    "@primitivefi/rmm-sdk": "^1.1.0-rc.2",
     "@rari-capital/solmate": "^6.2.0",
     "defender-relay-client": "^1.12.1"
   },
