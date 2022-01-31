@@ -1,19 +1,8 @@
 import { Contract, Signer } from 'ethers'
 import hre, { deployRmm, ethers } from 'hardhat'
 import { EthersRmm, _connectToDeployment, _RmmDeploymentJSON } from '../src'
-import TestWeth from '@primitivefi/rmm-manager/artifacts/contracts/test/WETH9.sol/WETH9.json'
 import { PoolDeployer } from '../utils/poolDeployer'
 import { deployPools, POOL_CONFIG_TO_DEPLOY, POOL_DEPLOYMENTS_SAVE } from '../scripts/deploy-pools'
-
-const connectToDeployment = async (deployment: _RmmDeploymentJSON, signer: Signer) =>
-  EthersRmm._from(_connectToDeployment(deployment, signer))
-
-const deployWeth = async (signer: Signer) => {
-  const contract = await ethers.getContractFactory(TestWeth.abi, TestWeth.bytecode, signer)
-  const t = await contract.deploy()
-  await t.deployed()
-  return t
-}
 
 describe('Deploy pools', function () {
   /* let deployment: _RmmDeploymentJSON

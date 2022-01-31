@@ -14,7 +14,7 @@ import {
   Swaps,
   weiToWei,
 } from '@primitivefi/rmm-sdk'
-import TestWeth from '@primitivefi/rmm-manager/artifacts/contracts/test/WETH9.sol/WETH9.json'
+import TestWeth from '../artifacts/contracts/WETH9.sol/WETH9.json'
 
 import { parsePercentage, parseWei, Time } from 'web3-units'
 import { Position } from '../src/Position'
