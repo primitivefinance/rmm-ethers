@@ -10,9 +10,9 @@ describe('Deploy pools', function () {
   })
 
   it('deploys upgradable contract', async function () {
-    const factory = await ethers.getContractFactory('PositionRenderer', deployer)
+    /* const factory = await ethers.getContractFactory('PositionRenderer', deployer)
     console.log(`Deploying PositionRenderer ...`)
     const contract = await hre.upgrades.deployProxy(factory, [])
-    console.log(contract.address)
+    console.log(contract.address) */
   })
 })

@@ -3,7 +3,9 @@ import { Signer } from '@ethersproject/abstract-signer'
 import { DefenderRelaySigner } from 'defender-relay-client/lib/ethers'
 
 import { log, setSilent } from '../utils/deploy'
+import ProxyAdminArtifact from '@openzeppelin/contracts/build/contracts/ProxyAdmin.json'
 import { PositionRendererManager } from '@primitivefi/rmm-sdk'
+import { ProxyAdmin } from '../typechain/ProxyAdmin'
 
 type Signers = Signer | DefenderRelaySigner
 
@@ -21,11 +23,19 @@ export async function main() {
   const chainId = rmm.connection.chainId
   log(`Using chainId: ${chainId}`)
 
-  const renderer = rmm.connection.addresses.positionRenderer
-  const factory = await hre.ethers.getContractFactory('PositionRenderer')
+  const renderer = await PositionRendererManager.getFactory(signer).deploy()
+  const admin = new hre.ethers.Contract(
+    rmm.connection.addresses.positionRendererProxyAdmin,
+    ProxyAdminArtifact.abi,
+    signer,
+  ) as ProxyAdmin
 
-  const upgraded = await hre.upgrades.upgradeProxy(renderer, factory)
-  log(`Upgraded the PositionRenderer ${upgraded.address}`)
+  const upgraded = await admin.upgrade(
+    rmm.connection.addresses.positionRendererTransparentUpgradeableProxy,
+    renderer.address,
+  )
+  const receipt = await upgraded.wait()
+  log(`Upgraded the PositionRenderer`, receipt, receipt.events?.[0]?.topics)
 }
 
 main()

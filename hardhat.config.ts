@@ -19,6 +19,7 @@ import { BigNumber } from '@ethersproject/bignumber'
 import { Overrides } from '@ethersproject/contracts'
 
 import { DefenderRelayProvider, DefenderRelaySigner } from 'defender-relay-client/lib/ethers'
+import PositionRendererArtifact from '@primitivefi/rmm-manager/artifacts/contracts/PositionRenderer.sol/PositionRenderer.json'
 
 import { _RmmDeploymentJSON, _connectToContracts } from './src/contracts'
 import { deployAndSetupContracts, setSilent } from './utils/deploy'
@@ -164,7 +165,7 @@ extendEnvironment((env: HardhatRuntimeEnvironment) => {
       _isDev,
       wethAddress,
       env.upgrades,
-      await env.ethers.getContractFactory('PositionRenderer'),
+      new env.ethers.ContractFactory(PositionRendererArtifact.abi, PositionRendererArtifact.bytecode, deployer),
       overrides,
     )
     return { ...deployment, version: getContractsVersion() }
@@ -274,7 +275,7 @@ task('deploy', 'Deploys the contracts to the network')
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
-const config: HardhatUserConfig = {
+const config = {
   defaultNetwork: 'hardhat',
   networks: {
     dev: {
@@ -361,11 +362,8 @@ const config: HardhatUserConfig = {
   },
   dependencyCompiler: {
     paths: [
-      '@primitivefi/rmm-core/contracts/PrimitiveEngine.sol',
-      '@primitivefi/rmm-core/contracts/PrimitiveFactory.sol',
-      '@primitivefi/rmm-manager/contracts/PrimitiveManager.sol',
-      '@primitivefi/rmm-manager/contracts/PositionRenderer.sol',
-      '@primitivefi/rmm-manager/contracts/PositionDescriptor.sol',
+      '@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol',
+      '@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol',
     ],
   },
 }

@@ -1,8 +1,15 @@
 import { Signer } from '@ethersproject/abstract-signer'
 import { ContractFactory, Overrides } from '@ethersproject/contracts'
 import { HardhatUpgrades } from '@openzeppelin/hardhat-upgrades'
-import { FactoryManager, PeripheryManager, PositionDescriptorManager } from '@primitivefi/rmm-sdk'
+import {
+  FactoryManager,
+  PeripheryManager,
+  PositionDescriptorManager,
+  PositionRendererManager,
+} from '@primitivefi/rmm-sdk'
 import { _RmmContractAddresses, _RmmContracts, _RmmDeploymentJSON, _connectToContracts } from '../src/contracts'
+import ProxyAdmin from '@openzeppelin/contracts/build/contracts/ProxyAdmin.json'
+import TransparentUpgradeableProxy from '@openzeppelin/contracts/build/contracts/TransparentUpgradeableProxy.json'
 
 let silent = true
 
@@ -40,35 +47,44 @@ const deployContractAndGetBlockNumber = async (
   return [contract.address, receipt.blockNumber]
 }
 
-const deployUpgradableContractAndGetBlockNumber = async (
-  factory: ContractFactory,
-  upgrades: HardhatUpgrades,
+const deployUpgradableContract = async (
+  target: string,
+  signer: Signer,
   contractName: string,
   ...args: unknown[]
-): Promise<[address: string, blockNumber: number]> => {
-  log(`Deploying ${contractName} ...`)
-  const contract = await upgrades.deployProxy(factory, [...args])
+): Promise<{ admin: string; upgradeableProxy: string }> => {
+  log(`Deploying Proxy Admin for ${contractName} ...`)
+  const proxyAdminFac = new ContractFactory(ProxyAdmin.abi, ProxyAdmin.bytecode, signer)
+  const upgradableFac = new ContractFactory(
+    TransparentUpgradeableProxy.abi,
+    TransparentUpgradeableProxy.bytecode,
+    signer,
+  )
 
-  log(`Waiting for transaction ${contract.deployTransaction.hash} ...`)
-  const receipt = await contract.deployTransaction.wait()
+  const proxyAdmin = await proxyAdminFac.deploy()
+  log(`Waiting for transaction ${proxyAdmin.deployTransaction.hash} ...`)
+  let receipt = await proxyAdmin.deployTransaction.wait()
+
+  log(`Deploying Upgradeable Proxy for ${contractName} ...`)
+  const upgradable = await upgradableFac.deploy(target, proxyAdmin.address, '0x')
+  log(`Waiting for transaction ${upgradable.deployTransaction.hash} ...`)
+  receipt = await upgradable.deployTransaction.wait()
 
   log({
-    contractAddress: contract.address,
+    contractAddress: target,
+    proxyAdmin: proxyAdmin.address,
+    upgradeableProxy: upgradable.address,
     blockNumber: receipt.blockNumber,
     gasUsed: receipt.gasUsed.toNumber(),
   })
 
   log()
 
-  return [contract.address, receipt.blockNumber]
+  return { admin: proxyAdmin.address, upgradeableProxy: upgradable.address }
 }
 
 const deployContract: (...p: Parameters<typeof deployContractAndGetBlockNumber>) => Promise<string> = (...p) =>
   deployContractAndGetBlockNumber(...p).then(([a]) => a)
-
-const deployUpgradableContract: (
-  ...p: Parameters<typeof deployUpgradableContractAndGetBlockNumber>
-) => Promise<string> = (...p) => deployUpgradableContractAndGetBlockNumber(...p).then(([a]) => a)
 
 const deployContracts = async (
   deployer: Signer,
@@ -83,12 +99,18 @@ const deployContracts = async (
     'PrimitiveFactory',
     { ...overrides },
   )
-  const positionRenderer = await deployUpgradableContract(
-    rendererFactory.connect(deployer),
-    upgrades,
+  const positionRenderer = await deployContract(
+    deployer,
+    async (_, signer) => PositionRendererManager.getFactory(signer),
     'PositionRenderer',
+    {
+      ...overrides,
+    },
   )
-  const descriptorArgs = [positionRenderer]
+
+  const { admin, upgradeableProxy } = await deployUpgradableContract(positionRenderer, deployer, 'PositionRenderer')
+
+  const descriptorArgs = [upgradeableProxy]
   const positionDescriptor = await deployContract(
     deployer,
     async (_, signer) => PositionDescriptorManager.getFactory(signer),
@@ -114,6 +136,8 @@ const deployContracts = async (
     positionRenderer: positionRenderer,
     positionDescriptor: positionDescriptor,
     primitiveManager: primitiveManager,
+    positionRendererProxyAdmin: admin,
+    positionRendererTransparentUpgradeableProxy: upgradeableProxy,
   }
 
   return [addresses, startBlock]

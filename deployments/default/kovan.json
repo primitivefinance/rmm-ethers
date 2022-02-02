@@ -8,6 +8,8 @@
     "primitiveFactory": "0xc2150C4BB6d78642B8750D5Cf6fCd76E15838C2C",
     "positionRenderer": "0x40d9017D6aBD06e6fD6df7cB36D7AF05aCE833DD",
     "positionDescriptor": "0x8AD914f2682d1956fC06Bf5657e9512C2e2C2e4d",
-    "primitiveManager": "0xdf0fc20e001CEbC4Bb32FeCe7ceBa260F64F2D28"
+    "primitiveManager": "0xdf0fc20e001CEbC4Bb32FeCe7ceBa260F64F2D28",
+    "positionRendererProxyAdmin": "",
+    "positionRendererTransparentUpgradeableProxy": ""
   }
 }

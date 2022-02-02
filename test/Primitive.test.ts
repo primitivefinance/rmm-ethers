@@ -1,6 +1,8 @@
 import { ethers, deployRmm } from 'hardhat'
 import chai from 'chai'
-import { Contract, Signer } from 'ethers'
+import { Contract, Signer, utils } from 'ethers'
+import { Base64 } from 'js-base64'
+import { Engine } from '@primitivefi/rmm-sdk'
 
 import { EthersRmm } from '../src/EthersRmm'
 import { _connectToDeployment, _RmmDeploymentJSON } from '../src'
@@ -15,6 +17,7 @@ import {
   weiToWei,
 } from '@primitivefi/rmm-sdk'
 import TestWeth from '../artifacts/contracts/WETH9.sol/WETH9.json'
+import PrimitiveManagerArtifact from '@primitivefi/rmm-manager/artifacts/contracts/PrimitiveManager.sol/PrimitiveManager.json'
 
 import { parsePercentage, parseWei, Time } from 'web3-units'
 import { Position } from '../src/Position'
@@ -51,12 +54,47 @@ interface TokenLike {
   symbol?: string
 }
 
+type Metadata = {
+  name: string
+  image: string
+  license: string
+  creator: string
+  description: string
+  properties: {
+    factory: string
+    riskyName: string
+    riskyAddress: string
+    riskName: string
+    riskySymbol: string
+    riskyDecimals: number
+    stableAddress: string
+    stableName: string
+    stableSymbol: string
+    stableDecimals: number
+    invariant: string
+    strike: string
+    sigma: string
+    maturity: string
+    lastTimestamp: string
+    gamma: string
+    reserveRisky: string
+    reserveStable: string
+    liquidity: string
+    blockTimestamp: string
+    cumulativeRisky: string
+    cumulativeStable: string
+    cumulativeLiquidity: string
+    chainId: number
+  }
+}
+
 describe('RMM Ethers', () => {
   let deployment: _RmmDeploymentJSON
   let deployer: Signer, signer1: Signer
   let rmm: EthersRmm
   let user0: string, user1: string
   let weth: Contract
+  let lastTimestamp: string
 
   before(async () => {
     ;[deployer, signer1] = await ethers.getSigners()
@@ -99,7 +137,7 @@ describe('RMM Ethers', () => {
       ;[risky, stable] = await Promise.all([deployTestERC20(deployer), deployTestERC20(deployer)])
 
       // mint and approve tokens for main user0
-      await Promise.all([risky.approve(manager, MaxUint256), stable.approve(manager, MaxUint256)])
+      const [tx] = await Promise.all([risky.approve(manager, MaxUint256), stable.approve(manager, MaxUint256)])
       await Promise.all([risky.mint(user0, parseWei('1000000').raw), stable.mint(user0, parseWei('1000000').raw)])
 
       // deploy engine
@@ -118,7 +156,7 @@ describe('RMM Ethers', () => {
         sigma: parsePercentage(1).toString(),
         maturity: (Time.now + Time.YearInSeconds).toString(),
         gamma: parsePercentage(1 - 0.01).toString(),
-        lastTimestamp: Time.now.toString(),
+        lastTimestamp,
       }
 
       pool = Pool.fromReferencePrice(refPrice, factory, riskyToken, stableToken, calibration, chainId)
@@ -132,7 +170,13 @@ describe('RMM Ethers', () => {
         delLiquidity: pool.liquidity,
         recipient: user0,
       }
-      await rmm.createPool({ pool, options })
+      const details = await rmm.createPool({ pool, options })
+
+      if (details.hash) {
+        const receipt = await ethers.provider.waitForTransaction(details.hash)
+        const block = await ethers.provider.getBlock(receipt.blockNumber)
+        lastTimestamp = block.timestamp.toString()
+      }
     })
 
     it('creates a pool', async function () {
@@ -142,7 +186,7 @@ describe('RMM Ethers', () => {
         sigma: parsePercentage(1).toString(),
         maturity: (Time.now + Time.YearInSeconds + 100).toString(), // for creating new pool
         gamma: parsePercentage(1 - 0.01).toString(),
-        lastTimestamp: Time.now.toString(),
+        lastTimestamp,
       }
       const createPool = Pool.fromReferencePrice(refPrice, factory, riskyToken, stableToken, calibration, chainId)
 
@@ -191,6 +235,66 @@ describe('RMM Ethers', () => {
       expect(details.newPosition.equals(new Position(pool, options.delLiquidity))).to.be.true
       expect(balance.sub(options.delLiquidity).raw.eq(balance.sub(details.newPosition.liquidity).raw)).to.be.true
       expect(details.hash).to.not.be.undefined
+    })
+
+    it('gets the tokenURI (which should be validated with rendering it)', async function () {
+      const res = await new ethers.Contract(pool.address, Engine.ABI, deployer).reserves(pool.poolId)
+      const reserveRisky = res.reserveRisky
+      const reserveStable = res.reserveStable
+      const liquidity = res.liquidity
+
+      const instance = new ethers.Contract(
+        rmm.connection.addresses.primitiveManager,
+        PrimitiveManagerArtifact.abi,
+        deployer,
+      )
+      const uri = await instance.uri(pool.poolId)
+      const [metadataFormat, encodedMetadata] = uri.split(',')
+      expect(metadataFormat).to.be.equal('data:application/json;base64')
+      const metadata: Metadata = JSON.parse(Base64.decode(encodedMetadata))
+      console.log(Base64.decode(encodedMetadata))
+
+      const riskySymbol = pool.risky.symbol
+      const stableSymbol = pool.stable.symbol
+      expect(metadata.name).to.be.equal(`Primitive RMM-01 LP ${riskySymbol}-${stableSymbol}`)
+
+      const [imageFormat, encodedImage] = metadata.image.split(',')
+      expect(imageFormat).to.be.equal('data:image/svg+xml;base64')
+      expect(Base64.decode(encodedImage)).to.be.equal(
+        '<svg width="512" height="512" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#000" d="M0 0h512v512H0z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M339.976 134.664h41.048L256 340.586 130.976 134.664h41.047V98H64.143L256 414 447.857 98H339.976v36.664Zm-38.759 0V98h-90.436v36.664h90.436Z" fill="#fff"/></svg>',
+      )
+
+      expect(metadata.license).to.be.equal('MIT')
+      expect(metadata.creator).to.be.equal('primitive.eth')
+      expect(metadata.description).to.be.equal('Concentrated liquidity tokens of a two-token AMM')
+
+      expect(utils.getAddress(metadata.properties.factory)).to.be.equal(pool.factory)
+
+      expect(utils.getAddress(metadata.properties.riskyAddress)).to.be.equal(pool.risky.address)
+      expect(metadata.properties.riskyName).to.be.equal(pool.risky.name)
+      expect(metadata.properties.riskySymbol).to.be.equal(pool.risky.symbol)
+      expect(metadata.properties.riskyDecimals).to.be.equal(pool.risky.decimals.toString())
+
+      expect(utils.getAddress(metadata.properties.stableAddress)).to.be.equal(pool.stable.address)
+      expect(metadata.properties.stableName).to.be.equal(pool.stable.name)
+      expect(metadata.properties.stableSymbol).to.be.equal(pool.stable.symbol)
+      expect(metadata.properties.stableDecimals).to.be.equal(pool.stable.decimals.toString())
+
+      expect(metadata.properties.invariant).to.be.equal('0')
+      expect(metadata.properties.strike).to.be.equal(pool.strike.raw.toString())
+      expect(metadata.properties.sigma).to.be.equal(pool.sigma.raw.toString())
+      expect(metadata.properties.maturity).to.be.equal(pool.maturity.raw.toString())
+      expect(metadata.properties.lastTimestamp).to.be.equal(lastTimestamp)
+      expect(metadata.properties.gamma).to.be.equal(pool.gamma.raw.toString())
+      expect(metadata.properties.reserveRisky).to.be.equal(reserveRisky.toString())
+      expect(metadata.properties.reserveStable).to.be.equal(reserveStable.toString())
+      expect(metadata.properties.liquidity).to.be.equal(liquidity.toString())
+      expect(metadata.properties.blockTimestamp).to.be.equal(lastTimestamp)
+      expect(metadata.properties.cumulativeRisky).to.be.equal('0')
+      expect(metadata.properties.cumulativeStable).to.be.equal('0')
+      expect(metadata.properties.cumulativeLiquidity).to.be.equal('0')
+
+      expect(metadata.properties.chainId).to.be.equal(31337)
     })
 
     it('fails to allocate 0 min liquidity', async function () {
