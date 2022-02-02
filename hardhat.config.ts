@@ -12,6 +12,7 @@ import 'hardhat-gas-reporter'
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-etherscan'
 import 'hardhat-dependency-compiler'
+import '@openzeppelin/hardhat-upgrades'
 
 import { Signer } from '@ethersproject/abstract-signer'
 import { BigNumber } from '@ethersproject/bignumber'
@@ -158,7 +159,14 @@ extendEnvironment((env: HardhatRuntimeEnvironment) => {
   env.deployRmm = async (deployer: Signers, wethAddress, overrides?: Overrides) => {
     const _isDev = env.network.name === 'dev'
     if (_isDev) setSilent(false)
-    const deployment = await deployAndSetupContracts(deployer, _isDev, wethAddress, overrides)
+    const deployment = await deployAndSetupContracts(
+      deployer,
+      _isDev,
+      wethAddress,
+      env.upgrades,
+      await env.ethers.getContractFactory('PositionRenderer'),
+      overrides,
+    )
     return { ...deployment, version: getContractsVersion() }
   }
 

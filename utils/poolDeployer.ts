@@ -6,8 +6,9 @@ import { isAddress } from '@ethersproject/address'
 import { MaxUint256 } from '@ethersproject/constants'
 
 import { EthersRmm } from '../src'
-import { ERC20 } from '../typechain/ERC20'
+import { ERC20, WETH9 } from '../typechain'
 import ERC20Artifact from '../artifacts/contracts/ERC20.sol/ERC20.json'
+import WETH9Artifact from '../artifacts/contracts/WETH9.sol/WETH9.json'
 import { log } from './deploy'
 
 export type PoolConfigType = {
@@ -20,6 +21,19 @@ export type PoolConfigType = {
 
 export type TokenLike = { address: string; decimals: number; name: string; symbol: string }
 export type PoolDeployments = { [poolId: string]: string }
+
+const WETHLike = {
+  address: '0xc778417E063141139Fce010982780140Aa0cD5Ab',
+  decimals: 18,
+  name: 'Test Weth',
+  symbol: 'WETH',
+}
+const USDCLike = {
+  address: '0x522064c1EafFEd8617BE64137f66A71D6C5c9aA3',
+  decimals: 6,
+  name: 'Test USDC',
+  symbol: 'USDC',
+}
 
 export interface IPoolDeploymentsJSON {
   name: string
@@ -43,7 +57,7 @@ export class PoolDeployer {
 
   private _token0?: TokenLike
   private _token1?: TokenLike
-  private _tokens?: ERC20[]
+  private _tokens?: (ERC20 | WETH9)[]
 
   constructor(chainId: number, path: string, config: PoolConfigType, rmm: EthersRmm) {
     this.chainId = chainId
@@ -72,11 +86,11 @@ export class PoolDeployer {
     return this._token1
   }
 
-  set tokens(tokens: ERC20[] | undefined) {
+  set tokens(tokens: (ERC20 | WETH9)[] | undefined) {
     this._tokens = tokens
   }
 
-  get tokens(): ERC20[] | undefined {
+  get tokens(): (ERC20 | WETH9)[] | undefined {
     return this._tokens
   }
 
@@ -119,12 +133,18 @@ export class PoolDeployer {
     return token
   }
 
-  async loadOrDeployTokens(hre: HardhatRuntimeEnvironment): Promise<void> {
-    const tokens = await getPoolTokensFromDeployment(this.config.name, this.chainId, this.path)
+  async loadOrDeployTokens(hre: HardhatRuntimeEnvironment, wethOverride?: boolean): Promise<void> {
+    let tokens = await getPoolTokensFromDeployment(this.config.name, this.chainId, this.path)
+    tokens = wethOverride ? [WETHLike, USDCLike] : tokens
     const [riskyLike, stableLike] = tokens
 
-    let riskyToken: ERC20
-    if (riskyLike?.address) riskyToken = new Contract(riskyLike.address, ERC20Artifact.abi, this.signer) as ERC20
+    let riskyToken: ERC20 | WETH9
+    if (riskyLike?.address)
+      if (wethOverride) {
+        riskyToken = new Contract(riskyLike.address, WETH9Artifact.abi, this.signer) as WETH9
+      } else {
+        riskyToken = new Contract(riskyLike.address, ERC20Artifact.abi, this.signer) as ERC20
+      }
     else riskyToken = await this.deployAndSaveToken(hre, 'risky')
 
     let stableToken: ERC20
@@ -185,9 +205,12 @@ export class PoolDeployer {
     // mint tokens if not enough in balances
     try {
       const balances = await Promise.all([riskyToken.balanceOf(account), stableToken.balanceOf(account)])
-
-      if (amounts[0].gt(balances[0])) await riskyToken.mint(account, amounts[0].raw.toHexString())
-      if (amounts[1].gt(balances[1])) await stableToken.mint(account, amounts[1].raw.toHexString())
+      if ((riskyToken as ERC20)?.mint) {
+        if (amounts[0].gt(balances[0])) await (riskyToken as ERC20).mint(account, amounts[0].raw.toHexString())
+      }
+      if ((stableToken as ERC20)?.mint) {
+        if (amounts[1].gt(balances[1])) await (stableToken as ERC20).mint(account, amounts[1].raw.toHexString())
+      }
     } catch (e) {
       log(`Caught on minting tokens`)
       throw new Error(e as any)

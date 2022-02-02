@@ -13,11 +13,12 @@ import { PoolConfigType, PoolDeployer, PoolDeployments } from '../utils/poolDepl
 export const POOL_DEPLOYMENTS_SAVE = path.join('./deployments', 'default', 'pools.json')
 
 // --- Config ---
-const DEFAULT_MATURITY = 1642809599 // Fri Jan 21 2022 23:59:59 GMT+0000
+const DEFAULT_MATURITY = 1644712357 // Fri Jan 21 2022 23:59:59 GMT+0000
 const DEFAULT_GAMMA = 0.99
 
 const defaultParams = { maturity: DEFAULT_MATURITY, gamma: DEFAULT_GAMMA }
 const defaultStable = { contractName: 'ERC20', name: 'Test USD Coin', symbol: 'USDC', decimals: 6 }
+
 const yveCRVDAO = {
   name: 'yveCRV-DAO',
   risky: {
@@ -58,6 +59,26 @@ const ribbon = {
   ],
 }
 
+const weth = {
+  name: 'Weth',
+  risky: {
+    contractName: 'ERC20',
+    name: 'Test Weth',
+    symbol: 'WETH',
+    decimals: 18,
+  },
+  stable: { ...defaultStable },
+  spot: 2786,
+  pools: [
+    { strike: 3000, sigma: 1, ...defaultParams },
+    { strike: 3000, sigma: 1.25, ...defaultParams },
+    { strike: 3000, sigma: 1.5, ...defaultParams },
+    { strike: 3500, sigma: 1, ...defaultParams },
+    { strike: 3500, sigma: 1.25, ...defaultParams },
+    { strike: 3500, sigma: 1.5, ...defaultParams },
+  ],
+}
+
 interface IAggregatedPools {
   vecrv: PoolConfigType
   rbn: PoolConfigType
@@ -71,14 +92,14 @@ const AGGREGATED_POOLS: IAggregatedPools = {
 type Signers = Signer | DefenderRelaySigner
 type CalibrationType = { strike: string; sigma: string; maturity: string; gamma: string }
 
-export const POOL_CONFIG_TO_DEPLOY = ribbon
+export const POOL_CONFIG_TO_DEPLOY = weth
 
 export async function deployPools(deployer: PoolDeployer) {
   const from = await deployer.rmm.connection.signer.getAddress()
 
   try {
     log(`Attempting to load or deploy tokens to deploy pools for`)
-    await deployer.loadOrDeployTokens(hre)
+    await deployer.loadOrDeployTokens(hre, true)
   } catch (e) {
     log('Thrown when deploying')
     throw new Error('Thrown on attempting to deploy testnet tokens')

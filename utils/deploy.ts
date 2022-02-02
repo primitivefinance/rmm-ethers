@@ -1,5 +1,6 @@
 import { Signer } from '@ethersproject/abstract-signer'
 import { ContractFactory, Overrides } from '@ethersproject/contracts'
+import { HardhatUpgrades } from '@openzeppelin/hardhat-upgrades'
 import {
   FactoryManager,
   PeripheryManager,
@@ -44,12 +45,41 @@ const deployContractAndGetBlockNumber = async (
   return [contract.address, receipt.blockNumber]
 }
 
+const deployUpgradableContractAndGetBlockNumber = async (
+  factory: ContractFactory,
+  upgrades: HardhatUpgrades,
+  contractName: string,
+  ...args: unknown[]
+): Promise<[address: string, blockNumber: number]> => {
+  log(`Deploying ${contractName} ...`)
+  const contract = await upgrades.deployProxy(factory, [...args])
+
+  log(`Waiting for transaction ${contract.deployTransaction.hash} ...`)
+  const receipt = await contract.deployTransaction.wait()
+
+  log({
+    contractAddress: contract.address,
+    blockNumber: receipt.blockNumber,
+    gasUsed: receipt.gasUsed.toNumber(),
+  })
+
+  log()
+
+  return [contract.address, receipt.blockNumber]
+}
+
 const deployContract: (...p: Parameters<typeof deployContractAndGetBlockNumber>) => Promise<string> = (...p) =>
   deployContractAndGetBlockNumber(...p).then(([a]) => a)
+
+const deployUpgradableContract: (
+  ...p: Parameters<typeof deployUpgradableContractAndGetBlockNumber>
+) => Promise<string> = (...p) => deployUpgradableContractAndGetBlockNumber(...p).then(([a]) => a)
 
 const deployContracts = async (
   deployer: Signer,
   wethAddress: string,
+  upgrades: HardhatUpgrades,
+  rendererFactory: ContractFactory,
   overrides?: Overrides,
 ): Promise<[addresses: _RmmContractAddresses, startBlock: number]> => {
   const [primitiveFactory, startBlock] = await deployContractAndGetBlockNumber(
@@ -58,13 +88,10 @@ const deployContracts = async (
     'PrimitiveFactory',
     { ...overrides },
   )
-  const positionRenderer = await deployContract(
-    deployer,
-    async (_, signer) => PositionRendererManager.getFactory(signer),
+  const positionRenderer = await deployUpgradableContract(
+    rendererFactory.connect(deployer),
+    upgrades,
     'PositionRenderer',
-    {
-      ...overrides,
-    },
   )
   const descriptorArgs = [positionRenderer]
   const positionDescriptor = await deployContract(
@@ -101,6 +128,8 @@ export const deployAndSetupContracts = async (
   deployer: Signer,
   _isDev = true,
   wethAddress: string,
+  upgrades: HardhatUpgrades,
+  rendererFactory: ContractFactory,
   overrides?: Overrides,
 ): Promise<_RmmDeploymentJSON> => {
   if (!deployer.provider) {
@@ -116,13 +145,15 @@ export const deployAndSetupContracts = async (
     deploymentDate: new Date().getTime(),
     _isDev,
 
-    ...(await deployContracts(deployer, wethAddress, overrides).then(async ([addresses, startBlock]) => ({
-      startBlock,
+    ...(await deployContracts(deployer, wethAddress, upgrades, rendererFactory, overrides).then(
+      async ([addresses, startBlock]) => ({
+        startBlock,
 
-      addresses: {
-        ...addresses,
-      },
-    }))),
+        addresses: {
+          ...addresses,
+        },
+      }),
+    )),
   }
 
   return {
