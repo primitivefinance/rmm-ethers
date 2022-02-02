@@ -21,8 +21,6 @@ export async function main() {
   const chainId = rmm.connection.chainId
   log(`Using chainId: ${chainId}`)
 
-  if (chainId === 1) throw new Error('Do not use this in prod!')
-
   const renderer = rmm.connection.addresses.positionRenderer
   const factory = await hre.ethers.getContractFactory('PositionRenderer')
 

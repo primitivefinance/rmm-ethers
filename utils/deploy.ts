@@ -1,12 +1,7 @@
 import { Signer } from '@ethersproject/abstract-signer'
 import { ContractFactory, Overrides } from '@ethersproject/contracts'
 import { HardhatUpgrades } from '@openzeppelin/hardhat-upgrades'
-import {
-  FactoryManager,
-  PeripheryManager,
-  PositionDescriptorManager,
-  PositionRendererManager,
-} from '@primitivefi/rmm-sdk'
+import { FactoryManager, PeripheryManager, PositionDescriptorManager } from '@primitivefi/rmm-sdk'
 import { _RmmContractAddresses, _RmmContracts, _RmmDeploymentJSON, _connectToContracts } from '../src/contracts'
 
 let silent = true

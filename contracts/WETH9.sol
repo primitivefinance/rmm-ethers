@@ -34,11 +34,6 @@ contract WETH9 {
         payable(recipient).transfer(msg.value);
     }
 
-    function mint(address to, uint256 value) public returns (bool) {
-        balanceOf[to] += value;
-        return true;
-    }
-
     function deposit() public payable {
         balanceOf[msg.sender] += msg.value;
         emit Deposit(msg.sender, msg.value);

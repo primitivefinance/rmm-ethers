@@ -21,8 +21,6 @@ export async function main() {
   const chainId = rmm.connection.chainId
   log(`Using chainId: ${chainId}`)
 
-  if (chainId === 1) throw new Error('Do not use this in prod!')
-
   const risky = '0xc778417E063141139Fce010982780140Aa0cD5Ab' // rinkeby:WETH: FIX
   const stable = '0x522064c1EafFEd8617BE64137f66A71D6C5c9aA3' // rinkeby:USDC: FIX
 
