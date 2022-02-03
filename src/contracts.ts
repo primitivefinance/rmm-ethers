@@ -2,8 +2,8 @@ import { LogDescription } from '@ethersproject/abi'
 import { Contract, ContractInterface } from '@ethersproject/contracts'
 import { Log } from '@ethersproject/abstract-provider'
 
-import ProxyAdminArtifact from '../artifacts/@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol/ProxyAdmin.json'
-import TransparentUpgradeableProxyArtifact from '../artifacts/@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol/TransparentUpgradeableProxy.json'
+import { ProxyAdminArtifact } from './abis'
+import { TransparentUpgradeableProxyArtifact } from './abis'
 
 import { PrimitiveManager } from '../typechain'
 import { PositionRenderer } from '../typechain'

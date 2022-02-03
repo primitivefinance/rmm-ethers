@@ -373,7 +373,7 @@ export const _RmmContractAbis: {
         stateMutability?: undefined;
     } | {
         inputs: {
-            internalType: string; /** @internal */
+            internalType: string;
             name: string;
             type: string;
         }[];
