@@ -1,20 +1,16 @@
 import fs from 'fs'
-import { Contract, Signer } from 'ethers'
-import { HardhatRuntimeEnvironment } from 'hardhat/types'
+import { Signer } from 'ethers'
 import { Wei } from 'web3-units'
 import { isAddress } from '@ethersproject/address'
 import { MaxUint256 } from '@ethersproject/constants'
 
 import { EthersRmm } from '../src'
 import { ERC20, WETH9 } from '../typechain'
-import ERC20Artifact from '../artifacts/contracts/ERC20.sol/ERC20.json'
-import WETH9Artifact from '../artifacts/contracts/WETH9.sol/WETH9.json'
 import { log } from './deploy'
 
 export type PoolConfigType = {
   name: string
-  risky: { contractName: string; name: string; symbol: string; decimals: number }
-  stable: { contractName: string; name: string; symbol: string; decimals: number }
+  engine: string
   spot: number
   pools: { strike: number; sigma: number; maturity: number; gamma: number }[]
 }
@@ -22,23 +18,9 @@ export type PoolConfigType = {
 export type TokenLike = { address: string; decimals: number; name: string; symbol: string }
 export type PoolDeployments = { [poolId: string]: string }
 
-const WETHLike = {
-  address: '0xc778417E063141139Fce010982780140Aa0cD5Ab',
-  decimals: 18,
-  name: 'Test Weth',
-  symbol: 'WETH',
-}
-const USDCLike = {
-  address: '0x522064c1EafFEd8617BE64137f66A71D6C5c9aA3',
-  decimals: 6,
-  name: 'Test USDC',
-  symbol: 'USDC',
-}
-
 export interface IPoolDeploymentsJSON {
   name: string
-  risky: TokenLike
-  stable: TokenLike
+  engine: string
   pools: PoolDeployments
 }
 
@@ -110,58 +92,21 @@ export class PoolDeployer {
     return (await readLog(this.chainId, this.config.name, this.path)) as IPoolDeploymentsJSON
   }
 
-  async deployAndSaveToken(hre: HardhatRuntimeEnvironment, slot: keyof PoolConfigType): Promise<ERC20> {
-    if (slot !== 'risky' && slot !== 'stable') throw new Error('Not the right token slot')
-    const loadedDeployment = await this.getDeployment()
-
-    const factory = await hre.ethers.getContractFactory(this.config[slot].contractName, this.signer)
-    const meta = {
-      name: this.config[slot].name,
-      symbol: this.config[slot].symbol,
-      decimals: this.config[slot].decimals,
-    }
-
-    log(`Deploying ${meta.name}!`)
-    const token: ERC20 = (await factory.deploy(meta.name, meta.symbol, meta.decimals)) as ERC20
-    await token.deployed()
-
-    const next: IPoolDeploymentsJSON = {
-      ...loadedDeployment,
-      [slot]: { address: token.address, ...meta },
-    }
-    await updateLog(this.chainId, this.config.name, next, this.path)
-    return token
-  }
-
-  async loadOrDeployTokens(hre: HardhatRuntimeEnvironment, wethOverride?: boolean): Promise<void> {
-    let tokens = await getPoolTokensFromDeployment(this.config.name, this.chainId, this.path)
-    tokens = wethOverride ? [WETHLike, USDCLike] : tokens
-    const [riskyLike, stableLike] = tokens
-
-    let riskyToken: ERC20 | WETH9
-    if (riskyLike?.address)
-      if (wethOverride) {
-        riskyToken = new Contract(riskyLike.address, WETH9Artifact.abi, this.signer) as WETH9
-      } else {
-        riskyToken = new Contract(riskyLike.address, ERC20Artifact.abi, this.signer) as ERC20
-      }
-    else riskyToken = await this.deployAndSaveToken(hre, 'risky')
-
-    let stableToken: ERC20
-    if (stableLike?.address) stableToken = new Contract(stableLike.address, ERC20Artifact.abi, this.signer) as ERC20
-    else stableToken = await this.deployAndSaveToken(hre, 'stable')
-
-    this.token0 = tokens[0]
-    this.token1 = tokens[1]
-    this.tokens = [riskyToken, stableToken]
+  async loadTokens(risky: ERC20, stable: ERC20): Promise<void> {
+    let [name, symbol, decimals] = await Promise.all([risky.name(), risky.symbol(), risky.decimals()])
+    const token0: TokenLike = { address: risky.address, name, symbol, decimals }
+    ;[name, symbol, decimals] = await Promise.all([stable.name(), stable.symbol(), stable.decimals()])
+    const token1: TokenLike = { address: stable.address, name, symbol, decimals }
+    this.token0 = token0
+    this.token1 = token1
+    this.tokens = [risky, stable]
   }
 
   async updatePools(name: string, pools: PoolDeployments): Promise<void> {
     const prev = await this.getDeployment()
     const next: IPoolDeploymentsJSON = {
       name,
-      risky: prev.risky,
-      stable: prev.stable,
+      engine: prev?.engine ?? this.config.engine,
       pools: { ...prev?.pools, ...pools },
     }
     await updateLog(this.chainId, this.config.name, next, this.path)
@@ -216,15 +161,6 @@ export class PoolDeployer {
       throw new Error(e as any)
     }
   }
-}
-
-async function getPoolTokensFromDeployment(
-  name: string,
-  chainId: number,
-  path: string,
-): Promise<[TokenLike | undefined, TokenLike | undefined]> {
-  const data = (await readLog(chainId, name, path)) as IPoolDeploymentsJSON
-  return [data?.risky, data?.stable]
 }
 
 async function updateLog(chainId: number, contractName: string, data: IPoolDeploymentsJSON, path?: string) {

@@ -1,4 +1,5 @@
-import { Pool, weiToWei } from '@primitivefi/rmm-sdk'
+import { Pool, validateAndParseAddress, weiToWei } from '@primitivefi/rmm-sdk'
+import { CallOverrides } from 'ethers'
 import { getAddress } from 'ethers/lib/utils'
 import { Wei } from 'web3-units'
 import {
@@ -10,6 +11,7 @@ import {
   _connect,
   _getContracts,
 } from '.'
+import { PrimitiveFactory } from '../typechain'
 import { Position } from './Position'
 import { poolify } from './utils'
 
@@ -91,8 +93,12 @@ export class ReadableEthersRmm implements ReadableRmm {
     const {
       primitiveFactory: { contract },
     } = _getContracts(this.connection)
-    return contract
-      .getEngine(getAddress(riskyAddress), getAddress(stableAddress))
+    return (contract as PrimitiveFactory)
+      .getEngine(validateAndParseAddress(riskyAddress), validateAndParseAddress(stableAddress))
       .then((val: string) => val as EngineAddress)
+      .catch(e => {
+        console.log(e)
+        return 'e'
+      })
   }
 }

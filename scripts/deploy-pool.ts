@@ -53,7 +53,7 @@ export async function main() {
   const calibration = {
     strike: parseWei(2750, 6).toString(),
     sigma: parsePercentage(1.25).toString(),
-    maturity: new Time(1644984438).toString(),
+    maturity: new Time(1644918397).toString(),
     gamma: parsePercentage(0.99).toString(),
   }
 
@@ -76,7 +76,7 @@ export async function main() {
 
   const options: AllocateOptions = {
     recipient: from,
-    slippageTolerance: parsePercentage(0.01),
+    slippageTolerance: parsePercentage(0.0),
     createPool: true,
     fromMargin: false,
     delRisky: pool.reserveRisky.add(1),
