@@ -96,9 +96,5 @@ export class ReadableEthersRmm implements ReadableRmm {
     return (contract as PrimitiveFactory)
       .getEngine(validateAndParseAddress(riskyAddress), validateAndParseAddress(stableAddress))
       .then((val: string) => val as EngineAddress)
-      .catch(e => {
-        console.log(e)
-        return 'e'
-      })
   }
 }
