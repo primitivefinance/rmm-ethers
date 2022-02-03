@@ -27,7 +27,6 @@ import { Overrides } from '@ethersproject/contracts'
 
 import { DefenderRelayProvider, DefenderRelaySigner } from 'defender-relay-client/lib/ethers'
 import PositionRendererArtifact from '@primitivefi/rmm-manager/artifacts/contracts/PositionRenderer.sol/PositionRenderer.json'
-import TestWeth from './artifacts/@primitivefi/rmm-manager/contracts/interfaces/external/IWETH9.sol/IWETH9.json'
 
 import { _RmmDeploymentJSON, _connectToContracts } from './src/contracts'
 import { deployAndSetupContracts, log, setSilent } from './utils/deploy'
@@ -37,7 +36,6 @@ import { EthersRmm, _connectToDeployment } from './src'
 const MNEMONIC = process.env.MNEMONIC || ''
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || ''
 const INFURA_API_KEY = process.env.INFURA_API_KEY || ''
-//const ALCHEMY_KEY = process.env.ALCHEMY_KEY || ''
 
 const {
   RELAY_KOVAN_SECRET,
@@ -49,7 +47,6 @@ const {
 } = process.env
 
 /* const {
-
   UNIVERSAL_RELAY_KOVAN_SECRET,
   UNIVERSAL_RELAY_KOVAN_API,
   UNIVERSAL_RELAY_RINKEBY_SECRET,

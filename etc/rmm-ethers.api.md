@@ -187,7 +187,7 @@ export interface _InternalEthersRmmConnection extends EthersRmmConnection {
 export type MinedReceipt<R = unknown, D = unknown> = FailedReceipt<R> | SuccessfulReceipt<R, D>;
 
 // @beta
-export function parseTokenURI(uri: string): any;
+export function parseBase64TokenURI(uri: string): any;
 
 // @public
 export type PendingReceipt = {
@@ -373,7 +373,7 @@ export const _RmmContractAbis: {
         stateMutability?: undefined;
     } | {
         inputs: {
-            internalType: string;
+            internalType: string; /** @internal */
             name: string;
             type: string;
         }[];
