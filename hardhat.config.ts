@@ -12,7 +12,6 @@ import 'hardhat-gas-reporter'
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-etherscan'
 import 'hardhat-dependency-compiler'
-import '@openzeppelin/hardhat-upgrades'
 
 import './tasks/deployEngine.task'
 import './tasks/deployPool.task'
@@ -26,7 +25,6 @@ import { BigNumber } from '@ethersproject/bignumber'
 import { Overrides } from '@ethersproject/contracts'
 
 import { DefenderRelayProvider, DefenderRelaySigner } from 'defender-relay-client/lib/ethers'
-import PositionRendererArtifact from '@primitivefi/rmm-manager/artifacts/contracts/PositionRenderer.sol/PositionRenderer.json'
 
 import { _RmmDeploymentJSON, _connectToContracts } from './src/contracts'
 import { deployAndSetupContracts, log, setSilent } from './utils/deploy'
@@ -165,14 +163,7 @@ extendEnvironment((env: HardhatRuntimeEnvironment) => {
   env.deployRmm = async (deployer: Signers, wethAddress, overrides?: Overrides) => {
     const _isDev = env.network.name === 'dev'
     if (_isDev) setSilent(false)
-    const deployment = await deployAndSetupContracts(
-      deployer,
-      _isDev,
-      wethAddress,
-      env.upgrades,
-      new env.ethers.ContractFactory(PositionRendererArtifact.abi, PositionRendererArtifact.bytecode, deployer),
-      overrides,
-    )
+    const deployment = await deployAndSetupContracts(deployer, _isDev, wethAddress, overrides)
     return { ...deployment, version: getContractsVersion() }
   }
 

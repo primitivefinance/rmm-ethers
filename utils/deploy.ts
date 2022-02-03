@@ -1,6 +1,5 @@
 import { Signer } from '@ethersproject/abstract-signer'
 import { ContractFactory, Overrides } from '@ethersproject/contracts'
-import { HardhatUpgrades } from '@openzeppelin/hardhat-upgrades'
 import {
   FactoryManager,
   PeripheryManager,
@@ -89,8 +88,6 @@ const deployContract: (...p: Parameters<typeof deployContractAndGetBlockNumber>)
 const deployContracts = async (
   deployer: Signer,
   wethAddress: string,
-  upgrades: HardhatUpgrades,
-  rendererFactory: ContractFactory,
   overrides?: Overrides,
 ): Promise<[addresses: _RmmContractAddresses, startBlock: number]> => {
   const [primitiveFactory, startBlock] = await deployContractAndGetBlockNumber(
@@ -147,8 +144,6 @@ export const deployAndSetupContracts = async (
   deployer: Signer,
   _isDev = true,
   wethAddress: string,
-  upgrades: HardhatUpgrades,
-  rendererFactory: ContractFactory,
   overrides?: Overrides,
 ): Promise<_RmmDeploymentJSON> => {
   if (!deployer.provider) {
@@ -164,15 +159,13 @@ export const deployAndSetupContracts = async (
     deploymentDate: new Date().getTime(),
     _isDev,
 
-    ...(await deployContracts(deployer, wethAddress, upgrades, rendererFactory, overrides).then(
-      async ([addresses, startBlock]) => ({
-        startBlock,
+    ...(await deployContracts(deployer, wethAddress, overrides).then(async ([addresses, startBlock]) => ({
+      startBlock,
 
-        addresses: {
-          ...addresses,
-        },
-      }),
-    )),
+      addresses: {
+        ...addresses,
+      },
+    }))),
   }
 
   return {
