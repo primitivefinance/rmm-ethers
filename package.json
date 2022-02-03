@@ -37,7 +37,7 @@
     "prepare": "run-s prepare:*",
     "prepare:deployments": "ts-node scripts/copy-deployments.ts",
     "prepare:compile": "hardhat compile",
-    "prepare:typechain": "hardhat typechain",
+    "prepare:typechain": "TS_NODE_TRANSPILE_ONLY=1 npx hardhat typechain",
     "prepare:lint": "eslint src",
     "prepare:tsc": "tsdx build --tsconfig tsconfig.production.json",
     "prepare:api": "api-extractor run --local",
