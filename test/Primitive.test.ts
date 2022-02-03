@@ -1,9 +1,10 @@
-import hre from 'hardhat'
+import hre, { deployRmm } from 'hardhat'
 import chai from 'chai'
 import { ethers } from 'hardhat'
 import { Contract, Signer, utils } from 'ethers'
 import { Base64 } from 'js-base64'
 import { Engine } from '@primitivefi/rmm-sdk'
+import { parsePercentage, parseWei, Time } from 'web3-units'
 
 import { EthersRmm } from '../src/EthersRmm'
 import { _connectToDeployment, _RmmDeploymentJSON } from '../src'
@@ -17,22 +18,18 @@ import {
   Swaps,
   weiToWei,
 } from '@primitivefi/rmm-sdk'
-import TestWeth from '../artifacts/@primitivefi/rmm-manager/contracts/interfaces/external/IWETH9.sol/IWETH9.json'
 import PrimitiveManagerArtifact from '@primitivefi/rmm-manager/artifacts/contracts/PrimitiveManager.sol/PrimitiveManager.json'
 
-import { parsePercentage, parseWei, Time } from 'web3-units'
 import { Position } from '../src/Position'
-import { TASK_DEPLOY_ENGINE, TASK_DEPLOY_POOL } from '../tasks/constants/task-names'
 
 const { MaxUint256 } = ethers.constants
-
 const { expect } = chai
 
 const connectToDeployment = (deployment: _RmmDeploymentJSON, signer: Signer) =>
   EthersRmm._from(_connectToDeployment(deployment, signer))
 
 const deployWeth = async (signer: Signer) => {
-  const contract = await ethers.getContractFactory(TestWeth.abi, TestWeth.bytecode, signer)
+  const contract = await ethers.getContractFactory('WETH9', signer)
   const t = await contract.deploy()
   await t.deployed()
   return t
@@ -102,7 +99,11 @@ describe('RMM Ethers', function () {
     ;[deployer, signer1] = await ethers.getSigners()
     user0 = await deployer.getAddress()
     user1 = await signer1.getAddress()
-    rmm = await hre.connect(deployer)
+    weth = await deployWeth(deployer)
+    const wethAddress = weth.address
+    deployment = await deployRmm(deployer, wethAddress)
+
+    rmm = await connectToDeployment(deployment, deployer)
     expect(rmm).to.be.instanceOf(EthersRmm)
   })
 
