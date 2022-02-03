@@ -8,22 +8,22 @@ type Signers = Signer | DefenderRelaySigner
 
 export async function main() {
   setSilent(false)
-
+  // --- Environment ---
   const signer: Signers = await hre.run('useSigner')
   const from = await signer.getAddress()
   log(`Using signer: ${from}`)
-
   const rmm = await hre.connect(signer)
-
   log(`Connected to RMM: `, rmm.connection.addresses)
-
   const chainId = rmm.connection.chainId
   log(`Using chainId: ${chainId}`)
 
+  // --- Config ---
   const name = 'USD Coin'
   const symbol = 'USDC'
   const decimals = 6
-  const factory = await hre.ethers.getContractFactory('ERC20')
+
+  // --- Deploy ---
+  const factory = await hre.ethers.getContractFactory('MintableERC20')
   const c = await factory.deploy(name, symbol, decimals)
   const t = await c.deployed()
   log(`Deployed token: ${symbol} to ${t.address}`)

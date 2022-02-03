@@ -16,16 +16,31 @@ import {
 import { Position } from './Position'
 import {
   EngineCreationParams,
-  TransactionFailedError,
   PositionAllocateParams,
   PositionAdjustmentDetails,
   PositionTransferParams,
   PositionBatchTransferParams,
   PositionRemoveParams,
   EngineCreationDetails,
-} from './TransactableRmm'
+} from './types/transactable'
 import { Pool } from '@primitivefi/rmm-sdk'
 import { Wei } from 'web3-units'
+
+/**
+ * Thrown by {@link TransactableRmm} functions in case of transaction failure.
+ *
+ * @public
+ */
+export class TransactionFailedError<T extends FailedReceipt = FailedReceipt> extends Error {
+  readonly failedReceipt: T
+
+  /** @internal */
+  constructor(name: string, message: string, failedReceipt: T) {
+    super(message)
+    this.name = name
+    this.failedReceipt = failedReceipt
+  }
+}
 
 /**
  * Thrown by {@link EthersRmm} in case of transaction failure.

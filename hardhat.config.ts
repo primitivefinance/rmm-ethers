@@ -14,16 +14,24 @@ import '@nomiclabs/hardhat-etherscan'
 import 'hardhat-dependency-compiler'
 import '@openzeppelin/hardhat-upgrades'
 
+import './tasks/deployEngine.task'
+import './tasks/deployPool.task'
+import './tasks/useToken.task'
+import './tasks/getCalibration.task'
+import './tasks/getEngine.task'
+import './tasks/getReserves.task'
+
 import { Signer } from '@ethersproject/abstract-signer'
 import { BigNumber } from '@ethersproject/bignumber'
 import { Overrides } from '@ethersproject/contracts'
 
 import { DefenderRelayProvider, DefenderRelaySigner } from 'defender-relay-client/lib/ethers'
 import PositionRendererArtifact from '@primitivefi/rmm-manager/artifacts/contracts/PositionRenderer.sol/PositionRenderer.json'
+import TestWeth from './artifacts/@primitivefi/rmm-manager/contracts/interfaces/external/IWETH9.sol/IWETH9.json'
 
 import { _RmmDeploymentJSON, _connectToContracts } from './src/contracts'
-import { deployAndSetupContracts, setSilent } from './utils/deploy'
-import { EthersRmm } from './src'
+import { deployAndSetupContracts, log, setSilent } from './utils/deploy'
+import { EthersRmm, _connectToDeployment } from './src'
 
 // --- Env ---
 const MNEMONIC = process.env.MNEMONIC || ''
@@ -152,7 +160,7 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
 declare module 'hardhat/types/runtime' {
   interface HardhatRuntimeEnvironment {
     deployRmm: (deployer: Signers, wethAddress: string, overrides?: Overrides) => Promise<_RmmDeploymentJSON>
-    connect: (signer: Signers) => Promise<EthersRmm>
+    connect: (signer: Signers, doLog?: boolean) => Promise<EthersRmm>
   }
 }
 
@@ -171,16 +179,42 @@ extendEnvironment((env: HardhatRuntimeEnvironment) => {
     return { ...deployment, version: getContractsVersion() }
   }
 
-  env.connect = async (signer: Signers) => {
-    let rmm: EthersRmm
-    try {
-      rmm = await EthersRmm.connect(signer)
-    } catch (e) {
-      console.error(`Thrown on attempting to connect to RMM protocol`, e)
-      throw new Error(`${e}`)
-    }
+  env.connect = async (signer: Signers, doLog = false) => {
+    if (env.network.name !== 'hardhat') {
+      let rmm: EthersRmm
+      try {
+        rmm = await EthersRmm.connect(signer)
+      } catch (e) {
+        console.error(`Thrown on attempting to connect to RMM protocol`, e)
+        throw new Error(`${e}`)
+      }
 
-    return rmm
+      if (doLog) {
+        const chainId = rmm.connection.chainId
+        const dateOf = rmm.connection.deploymentDate.toUTCString()
+        log(`Connected to RMM deployed on: ${dateOf} on chainId: ${chainId} `, rmm.connection.addresses)
+      }
+      return rmm
+    } else {
+      // for local testing tasks
+      const deployWeth = async (signer: Signer) => {
+        const contract = await env.ethers.getContractFactory('WETH9', signer)
+        const t = await contract.deploy()
+        await t.deployed()
+        return t
+      }
+
+      const weth = await deployWeth(signer)
+      const wethAddress = weth.address
+      const deployment = await env.deployRmm(signer, wethAddress)
+      const rmm = EthersRmm._from(_connectToDeployment(deployment, signer))
+      if (doLog) {
+        const chainId = rmm.connection.chainId
+        const dateOf = rmm.connection.deploymentDate.toUTCString()
+        log(`Connected to RMM deployed on: ${dateOf} on chainId: ${chainId} `, rmm.connection.addresses)
+      }
+      return rmm
+    }
   }
 })
 
@@ -207,6 +241,7 @@ export function useRelaySigner(hre: HardhatRuntimeEnvironment, chainId: number) 
 }
 
 subtask('useSigner', 'use the default signer or one at the signers index')
+  .addFlag('log', 'log in the console the signer address being used')
   .addOptionalParam('i', 'signer index')
   .setAction(async (args, hre) => {
     const chainId = +(await hre.network.provider.send('eth_chainId'))
@@ -217,6 +252,8 @@ subtask('useSigner', 'use the default signer or one at the signers index')
     else if (args.i) signer = (await hre.ethers.getSigners())[args.i]
     else [signer] = await hre.ethers.getSigners()
 
+    const from = await signer.getAddress()
+    if (args.log) log(`Using signer: ${from}`)
     return signer
   })
 
@@ -362,6 +399,7 @@ const config = {
   },
   dependencyCompiler: {
     paths: [
+      '@primitivefi/rmm-manager/contracts/interfaces/external/IWETH9.sol',
       '@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol',
       '@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol',
     ],

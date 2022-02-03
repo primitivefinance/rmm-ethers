@@ -12,7 +12,7 @@ import { PrimitiveFactory } from '../typechain'
 import { ProxyAdmin } from '../typechain/ProxyAdmin'
 import { TransparentUpgradeableProxy } from '../typechain/TransparentUpgradeableProxy'
 
-import { EthersProvider, EthersSigner } from './types'
+import { EthersProvider, EthersSigner } from './types/base'
 import { BigNumber } from '@ethersproject/bignumber'
 import {
   Engine,
@@ -97,7 +97,10 @@ interface ManagerContract extends _TypedRmmContract<PrimitiveManager> {
 }
 
 interface FactoryContract extends _TypedRmmContract<PrimitiveFactory> {
-  extractEvents(logs: Log[], name: 'DeployedEngine'): _TypedLogDescription<{ engine: string }>[]
+  extractEvents(
+    logs: Log[],
+    name: 'DeployEngine',
+  ): _TypedLogDescription<{ from: string; risky: string; stable: string; engine: string }>[]
 }
 
 type PositionRendererContract = _TypedRmmContract<PositionRenderer>

@@ -6,6 +6,7 @@ import { PrimitiveEngine } from '../typechain/PrimitiveEngine'
 
 import { log } from './deploy'
 import { EngineCreationDetails, EthersRmm, _RmmContractAbis } from '../src'
+import { validateAndParseAddress } from '@primitivefi/rmm-sdk'
 
 export async function deployEngine(rmm: EthersRmm, risky: string, stable: string): Promise<PrimitiveEngine> {
   if (!isAddress(risky)) throw new Error(`Risky address is invalid, is it check summed?`)
@@ -32,15 +33,17 @@ export async function deployEngine(rmm: EthersRmm, risky: string, stable: string
     let details: EngineCreationDetails | undefined = undefined
     try {
       details = await rmm.createEngine({ risky: risky, stable: stable })
+      log(`   Deployed engine...`, details)
     } catch (e) {
       log(`   Failed on attempting to createEngine`)
     }
 
     try {
-      engineAddress = await rmm.getEngine(risky, stable)
-    } catch (e) {}
-
-    engineAddress = details?.engine ?? AddressZero
+      engineAddress = validateAndParseAddress(await rmm.getEngine(risky, stable))
+      log(`   Got engine: ${engineAddress}`)
+    } catch (e) {
+      log(`   Failed attempting to getEngine`, e)
+    }
   }
 
   if (engineAddress === AddressZero) throw new Error('Zero address on engine, failed deployment?')
@@ -49,5 +52,7 @@ export async function deployEngine(rmm: EthersRmm, risky: string, stable: string
     _RmmContractAbis.primitiveEngine,
     rmm.connection.signer,
   ) as PrimitiveEngine
+
+  if (!validateAndParseAddress(engineAddress)) throw new Error(`Engine address not valid: ${engineAddress}`)
   return engine
 }

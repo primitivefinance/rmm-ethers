@@ -1,0 +1,8 @@
+export const TASK_CREATE = 'create'
+export const TASK_USE_SIGNER = 'useSigner'
+export const TASK_USE_TOKEN = 'useToken'
+export const TASK_DEPLOY_ENGINE = 'deploy:engine'
+export const TASK_GET_ENGINE = 'getEngine'
+export const TASK_GET_CALIBRATION = 'getCalibration'
+export const TASK_GET_RESERVES = 'getReserves'
+export const TASK_DEPLOY_POOL = 'deploy:pool'

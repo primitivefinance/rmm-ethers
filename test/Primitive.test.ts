@@ -1,12 +1,13 @@
-import { ethers, deployRmm } from 'hardhat'
+import hre from 'hardhat'
 import chai from 'chai'
+import { ethers } from 'hardhat'
 import { Contract, Signer, utils } from 'ethers'
 import { Base64 } from 'js-base64'
 import { Engine } from '@primitivefi/rmm-sdk'
 
 import { EthersRmm } from '../src/EthersRmm'
 import { _connectToDeployment, _RmmDeploymentJSON } from '../src'
-import { EngineAddress } from '../src/TransactableRmm'
+import { EngineAddress } from '../src/types/transactable'
 import {
   AllocateOptions,
   Pool,
@@ -16,17 +17,18 @@ import {
   Swaps,
   weiToWei,
 } from '@primitivefi/rmm-sdk'
-import TestWeth from '../artifacts/contracts/WETH9.sol/WETH9.json'
+import TestWeth from '../artifacts/@primitivefi/rmm-manager/contracts/interfaces/external/IWETH9.sol/IWETH9.json'
 import PrimitiveManagerArtifact from '@primitivefi/rmm-manager/artifacts/contracts/PrimitiveManager.sol/PrimitiveManager.json'
 
 import { parsePercentage, parseWei, Time } from 'web3-units'
 import { Position } from '../src/Position'
+import { TASK_DEPLOY_ENGINE, TASK_DEPLOY_POOL } from '../tasks/constants/task-names'
 
 const { MaxUint256 } = ethers.constants
 
 const { expect } = chai
 
-const connectToDeployment = async (deployment: _RmmDeploymentJSON, signer: Signer) =>
+const connectToDeployment = (deployment: _RmmDeploymentJSON, signer: Signer) =>
   EthersRmm._from(_connectToDeployment(deployment, signer))
 
 const deployWeth = async (signer: Signer) => {
@@ -37,7 +39,7 @@ const deployWeth = async (signer: Signer) => {
 }
 
 const deployTestERC20 = async (signer: Signer) => {
-  const contract = await ethers.getContractFactory('ERC20', signer)
+  const contract = await ethers.getContractFactory('MintableERC20', signer)
   const t = await contract.deploy('test token', 't', 18)
   await t.deployed()
   return t
@@ -88,7 +90,7 @@ type Metadata = {
   }
 }
 
-describe('RMM Ethers', () => {
+describe('RMM Ethers', function () {
   let deployment: _RmmDeploymentJSON
   let deployer: Signer, signer1: Signer
   let rmm: EthersRmm
@@ -96,25 +98,22 @@ describe('RMM Ethers', () => {
   let weth: Contract
   let lastTimestamp: string
 
-  before(async () => {
+  before(async function () {
     ;[deployer, signer1] = await ethers.getSigners()
     user0 = await deployer.getAddress()
     user1 = await signer1.getAddress()
-    weth = await deployWeth(deployer)
-    const wethAddress = weth.address
-    deployment = await deployRmm(deployer, wethAddress)
-
-    rmm = await connectToDeployment(deployment, deployer)
+    rmm = await hre.connect(deployer)
     expect(rmm).to.be.instanceOf(EthersRmm)
   })
 
-  describe('deploy', async () => {
+  describe('deploy', function () {
     it('deploys engine', async function () {
       const [token0, token1] = await Promise.all([deployTestERC20(deployer), deployTestERC20(deployer)])
 
       const engine = await rmm.createEngine({ risky: token0.address, stable: token1.address })
       expect(engine).to.not.be.undefined
       expect(engine.hash).to.not.be.undefined
+      expect(engine.engine).to.not.be.undefined
     })
   })
 
@@ -352,7 +351,12 @@ describe('RMM Ethers', () => {
     })
 
     it('removes liquidity from a pool', async function () {
-      const standard = { toMargin: true, fromMargin: false, slippageTolerance: parsePercentage(0.0), recipient: user0 }
+      const standard = {
+        toMargin: true,
+        fromMargin: false,
+        slippageTolerance: parsePercentage(0.0),
+        recipient: user0,
+      }
 
       const refreshed = await rmm.getPool(pool.poolId)
 
