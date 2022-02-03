@@ -18,8 +18,12 @@ jobs:
         with:
           node-version: 16
       - name: Install Dependencies
+        env:
+          TS_NODE_TRANSPILE_ONLY: 1
         run: yarn install --frozen-lockfile --ignore-engines
       - name: Build Package
+        env:
+          TS_NODE_TRANSPILE_ONLY: 1
         run: yarn build
       - name: Semantic Release
         env:
