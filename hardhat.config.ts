@@ -16,8 +16,8 @@ import 'hardhat-dependency-compiler'
 // UNCOMMENT TO USE
 //import './tasks/deployEngine.task'
 //import './tasks/deployPool.task'
+//import './tasks/useToken.task'
 
-import './tasks/useToken.task'
 import './tasks/getCalibration.task'
 import './tasks/getEngine.task'
 import './tasks/getReserves.task'
