@@ -7,12 +7,11 @@ import { parsePercentage, parseWei, Time } from 'web3-units'
 import { Signer } from '@ethersproject/abstract-signer'
 import { DefenderRelaySigner } from 'defender-relay-client/lib/ethers'
 
-import { log, setSilent } from '../utils/deploy'
+import { PositionAdjustmentDetails } from '../src'
 import { deployPool } from '../utils/deployPool'
 import { IERC20 } from '../typechain'
 
 import { TASK_DEPLOY_ENGINE, TASK_DEPLOY_POOL, TASK_USE_TOKEN } from './constants/task-names'
-import { PositionAdjustmentDetails } from '../src'
 
 const { MaxUint256 } = constants
 
@@ -31,7 +30,6 @@ task(TASK_DEPLOY_POOL, 'deploys a pool')
   .addOptionalParam('gas', 'optional param to set gas limit')
   .setAction(async (args, hre) => {
     const { risky: riskyAddress, stable: stableAddress, strike, sigma, maturity, gamma, spot, liquidity } = args
-    setSilent(false)
 
     // --- Context ---
     const signer: Signers = await hre.run('useSigner', { log: true })
@@ -109,7 +107,7 @@ task(TASK_DEPLOY_POOL, 'deploys a pool')
       if (amounts[1].gt(balances[1]))
         await (stable.contract as any).mint(from, parseWei(100000, stable.metadata.decimals).raw)
     } catch (e) {
-      log(`   Failed minting tokens, is it a test token?`, e)
+      console.log(`   Failed minting tokens, is it a test token?`, e)
     }
 
     // --- Approvals ---
@@ -123,7 +121,7 @@ task(TASK_DEPLOY_POOL, 'deploys a pool')
       if (amounts[1].gt(stableAllowance))
         await stable.contract.approve(rmm.connection.addresses.primitiveManager, MaxUint256)
     } catch (e) {
-      log(`   Failed approving: `, e)
+      console.log(`   Failed approving: `, e)
     }
 
     // --- Deploy the pool ---
@@ -131,11 +129,11 @@ task(TASK_DEPLOY_POOL, 'deploys a pool')
     try {
       details = await deployPool(rmm, pool, options)
       if (details?.hash) {
-        log(details)
-        log(`🎉 Deployed pool! 🎉 ${pool.poolId}`)
+        console.log(details)
+        console.log(`🎉 Deployed pool! 🎉 ${pool.poolId}`)
       }
     } catch (e) {
-      log(`   Caught when attempting to deploy pool: `, e)
+      console.log(`   Caught when attempting to deploy pool: `, e)
     }
 
     return details

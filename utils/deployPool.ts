@@ -3,8 +3,6 @@ import { AllocateOptions, Pool, Swaps } from '@primitivefi/rmm-sdk'
 
 import { EthersRmm, PositionAdjustmentDetails } from '../src'
 
-import { log } from './deploy'
-
 /**
  * Calls createPool() on the EthersRmm object to deploy a new pool.
  *
@@ -37,7 +35,7 @@ export async function deployPool(
   if (estimatedRisky < 1e-6) throw new Error(`Estimated risky reserves are too low: ${estimatedRisky}  < 1e-6`)
   if (estimatedRisky > 1 - 1e-6) throw new Error(`Estimated risky reserves are too high: ${estimatedRisky} > 1 - 1e-6`)
 
-  log(
+  console.log(
     `Creating pool for pair ${pool.risky.symbol}/${pool.stable.symbol} at implied spot price of: ${pool.referencePriceOfRisky?.display}`,
   )
 
@@ -45,7 +43,7 @@ export async function deployPool(
   try {
     positionAdjustmentDetails = await rmm.createPool({ pool, options })
   } catch (e) {
-    log(`Failed on attempting to createPool with code: ${(e as any)?.code ? (e as any).code : e}`)
+    console.log(`Failed on attempting to createPool with code: ${(e as any)?.code ? (e as any).code : e}`)
   }
 
   return positionAdjustmentDetails

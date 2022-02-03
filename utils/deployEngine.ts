@@ -1,10 +1,9 @@
 import { Contract } from 'ethers'
 import { AddressZero } from '@ethersproject/constants'
 import { isAddress } from '@ethersproject/address'
-
-import { log } from './deploy'
-import { EngineCreationDetails, EthersRmm, _RmmContractAbis } from '../src'
 import { validateAndParseAddress } from '@primitivefi/rmm-sdk'
+
+import { EngineCreationDetails, EthersRmm, _RmmContractAbis } from '../src'
 
 export async function deployEngine(rmm: EthersRmm, risky: string, stable: string): Promise<Contract> {
   if (!isAddress(risky)) throw new Error(`Risky address is invalid, is it check summed?`)
@@ -21,26 +20,26 @@ export async function deployEngine(rmm: EthersRmm, risky: string, stable: string
 
   try {
     engineAddress = await rmm.getEngine(risky, stable)
-    log(`   Got engine at: ${engineAddress}`)
+    console.log(`   Got engine at: ${engineAddress}`)
   } catch (e) {
-    log(`   Caught when attempting to getEngine`)
+    console.log(`   Caught when attempting to getEngine`)
   }
 
   if (engineAddress === AddressZero) {
-    log(`     Deploying engine because fetched address is zero: ${engineAddress}`)
+    console.log(`     Deploying engine because fetched address is zero: ${engineAddress}`)
     let details: EngineCreationDetails | undefined = undefined
     try {
       details = await rmm.createEngine({ risky: risky, stable: stable })
-      log(`   Deployed engine...`, details)
+      console.log(`   Deployed engine...`, details)
     } catch (e) {
-      log(`   Failed on attempting to createEngine`)
+      console.log(`   Failed on attempting to createEngine`)
     }
 
     try {
       engineAddress = validateAndParseAddress(await rmm.getEngine(risky, stable))
-      log(`   Got engine: ${engineAddress}`)
+      console.log(`   Got engine: ${engineAddress}`)
     } catch (e) {
-      log(`   Failed attempting to getEngine`, e)
+      console.log(`   Failed attempting to getEngine`, e)
     }
   }
 

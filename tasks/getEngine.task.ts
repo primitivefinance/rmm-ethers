@@ -1,6 +1,7 @@
 import { subtask } from 'hardhat/config'
-import { TASK_GET_ENGINE } from './constants/task-names'
 import { Engine, FactoryManager } from '@primitivefi/rmm-sdk'
+
+import { TASK_GET_ENGINE } from './constants/task-names'
 
 subtask(TASK_GET_ENGINE, 'gets the engine contract using the factory given a risky and stable')
   .addFlag('log', 'log to console')
