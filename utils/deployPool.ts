@@ -1,6 +1,8 @@
-import { AllocateOptions, Pool, Swaps } from '@primitivefi/rmm-sdk'
 import { Time } from 'web3-units'
+import { AllocateOptions, Pool, Swaps } from '@primitivefi/rmm-sdk'
+
 import { EthersRmm, PositionAdjustmentDetails } from '../src'
+
 import { log } from './deploy'
 
 /**

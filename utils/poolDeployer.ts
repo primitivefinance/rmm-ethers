@@ -5,7 +5,7 @@ import { isAddress } from '@ethersproject/address'
 import { MaxUint256 } from '@ethersproject/constants'
 
 import { EthersRmm } from '../src'
-import { ERC20, WETH9 } from '../typechain'
+import { IERC20WithMetadata, WETH9 } from '../typechain'
 import { log } from './deploy'
 
 export type PoolConfigType = {
@@ -39,7 +39,7 @@ export class PoolDeployer {
 
   private _token0?: TokenLike
   private _token1?: TokenLike
-  private _tokens?: (ERC20 | WETH9)[]
+  private _tokens?: (IERC20WithMetadata | WETH9)[]
 
   constructor(chainId: number, path: string, config: PoolConfigType, rmm: EthersRmm) {
     this.chainId = chainId
@@ -68,11 +68,11 @@ export class PoolDeployer {
     return this._token1
   }
 
-  set tokens(tokens: (ERC20 | WETH9)[] | undefined) {
+  set tokens(tokens: (IERC20WithMetadata | WETH9)[] | undefined) {
     this._tokens = tokens
   }
 
-  get tokens(): (ERC20 | WETH9)[] | undefined {
+  get tokens(): (IERC20WithMetadata | WETH9)[] | undefined {
     return this._tokens
   }
 
@@ -92,7 +92,7 @@ export class PoolDeployer {
     return (await readLog(this.chainId, this.config.name, this.path)) as IPoolDeploymentsJSON
   }
 
-  async loadTokens(risky: ERC20, stable: ERC20): Promise<void> {
+  async loadTokens(risky: IERC20WithMetadata, stable: IERC20WithMetadata): Promise<void> {
     let [name, symbol, decimals] = await Promise.all([risky.name(), risky.symbol(), risky.decimals()])
     const token0: TokenLike = { address: risky.address, name, symbol, decimals }
     ;[name, symbol, decimals] = await Promise.all([stable.name(), stable.symbol(), stable.decimals()])
@@ -150,11 +150,11 @@ export class PoolDeployer {
     // mint tokens if not enough in balances
     try {
       const balances = await Promise.all([riskyToken.balanceOf(account), stableToken.balanceOf(account)])
-      if ((riskyToken as ERC20)?.mint) {
-        if (amounts[0].gt(balances[0])) await (riskyToken as ERC20).mint(account, amounts[0].raw.toHexString())
+      if ((riskyToken as any)?.mint) {
+        if (amounts[0].gt(balances[0])) await (riskyToken as any).mint(account, amounts[0].raw.toHexString())
       }
-      if ((stableToken as ERC20)?.mint) {
-        if (amounts[1].gt(balances[1])) await (stableToken as ERC20).mint(account, amounts[1].raw.toHexString())
+      if ((stableToken as any)?.mint) {
+        if (amounts[1].gt(balances[1])) await (stableToken as any).mint(account, amounts[1].raw.toHexString())
       }
     } catch (e) {
       log(`Caught on minting tokens`)
