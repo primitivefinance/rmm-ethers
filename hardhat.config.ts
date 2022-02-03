@@ -28,9 +28,9 @@ import { Overrides } from '@ethersproject/contracts'
 
 import { DefenderRelayProvider, DefenderRelaySigner } from 'defender-relay-client/lib/ethers'
 
-import { _RmmDeploymentJSON, _connectToContracts } from './src/contracts'
+import { _RmmDeploymentJSON } from './src/contracts'
 import { deployAndSetupContracts, log, setSilent } from './utils/deploy'
-import { EthersRmm, _connectToDeployment } from './src'
+import { EthersRmm } from './src'
 
 // --- Env ---
 const MNEMONIC = process.env.MNEMONIC || ''
@@ -170,41 +170,20 @@ extendEnvironment((env: HardhatRuntimeEnvironment) => {
   }
 
   env.connect = async (signer: Signers, doLog = false) => {
-    if (env.network.name !== 'hardhat') {
-      let rmm: EthersRmm
-      try {
-        rmm = await EthersRmm.connect(signer)
-      } catch (e) {
-        console.error(`Thrown on attempting to connect to RMM protocol`, e)
-        throw new Error(`${e}`)
-      }
-
-      if (doLog) {
-        const chainId = rmm.connection.chainId
-        const dateOf = rmm.connection.deploymentDate.toUTCString()
-        log(`Connected to RMM deployed on: ${dateOf} on chainId: ${chainId} `, rmm.connection.addresses)
-      }
-      return rmm
-    } else {
-      // for local testing tasks
-      const deployWeth = async (signer: Signer) => {
-        const contract = await env.ethers.getContractFactory('WETH9', signer)
-        const t = await contract.deploy()
-        await t.deployed()
-        return t
-      }
-
-      const weth = await deployWeth(signer)
-      const wethAddress = weth.address
-      const deployment = await env.deployRmm(signer, wethAddress)
-      const rmm = EthersRmm._from(_connectToDeployment(deployment, signer))
-      if (doLog) {
-        const chainId = rmm.connection.chainId
-        const dateOf = rmm.connection.deploymentDate.toUTCString()
-        log(`Connected to RMM deployed on: ${dateOf} on chainId: ${chainId} `, rmm.connection.addresses)
-      }
-      return rmm
+    let rmm: EthersRmm
+    try {
+      rmm = await EthersRmm.connect(signer)
+    } catch (e) {
+      console.error(`Thrown on attempting to connect to RMM protocol`, e)
+      throw new Error(`${e}`)
     }
+
+    if (doLog) {
+      const chainId = rmm.connection.chainId
+      const dateOf = rmm.connection.deploymentDate.toUTCString()
+      log(`Connected to RMM deployed on: ${dateOf} on chainId: ${chainId} `, rmm.connection.addresses)
+    }
+    return rmm
   }
 })
 
