@@ -13,21 +13,29 @@ import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-etherscan'
 import 'hardhat-dependency-compiler'
 
+// UNCOMMENT TO USE
+//import './tasks/deployEngine.task'
+//import './tasks/deployPool.task'
+//import './tasks/useToken.task'
+
+import './tasks/getCalibration.task'
+import './tasks/getEngine.task'
+import './tasks/getReserves.task'
+
 import { Signer } from '@ethersproject/abstract-signer'
 import { BigNumber } from '@ethersproject/bignumber'
 import { Overrides } from '@ethersproject/contracts'
 
 import { DefenderRelayProvider, DefenderRelaySigner } from 'defender-relay-client/lib/ethers'
 
-import { _RmmDeploymentJSON, _connectToContracts } from './src/contracts'
-import { deployAndSetupContracts, setSilent } from './utils/deploy'
+import { _RmmDeploymentJSON } from './src/contracts'
+import { deployAndSetupContracts, log, setSilent } from './utils/deploy'
 import { EthersRmm } from './src'
 
 // --- Env ---
 const MNEMONIC = process.env.MNEMONIC || ''
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || ''
 const INFURA_API_KEY = process.env.INFURA_API_KEY || ''
-//const ALCHEMY_KEY = process.env.ALCHEMY_KEY || ''
 
 const {
   RELAY_KOVAN_SECRET,
@@ -39,7 +47,6 @@ const {
 } = process.env
 
 /* const {
-
   UNIVERSAL_RELAY_KOVAN_SECRET,
   UNIVERSAL_RELAY_KOVAN_API,
   UNIVERSAL_RELAY_RINKEBY_SECRET,
@@ -150,7 +157,7 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
 declare module 'hardhat/types/runtime' {
   interface HardhatRuntimeEnvironment {
     deployRmm: (deployer: Signers, wethAddress: string, overrides?: Overrides) => Promise<_RmmDeploymentJSON>
-    connect: (signer: Signers) => Promise<EthersRmm>
+    connect: (signer: Signers, doLog?: boolean) => Promise<EthersRmm>
   }
 }
 
@@ -162,7 +169,7 @@ extendEnvironment((env: HardhatRuntimeEnvironment) => {
     return { ...deployment, version: getContractsVersion() }
   }
 
-  env.connect = async (signer: Signers) => {
+  env.connect = async (signer: Signers, doLog = false) => {
     let rmm: EthersRmm
     try {
       rmm = await EthersRmm.connect(signer)
@@ -171,6 +178,11 @@ extendEnvironment((env: HardhatRuntimeEnvironment) => {
       throw new Error(`${e}`)
     }
 
+    if (doLog) {
+      const chainId = rmm.connection.chainId
+      const dateOf = rmm.connection.deploymentDate.toUTCString()
+      log(`Connected to RMM deployed on: ${dateOf} on chainId: ${chainId} `, rmm.connection.addresses)
+    }
     return rmm
   }
 })
@@ -198,6 +210,7 @@ export function useRelaySigner(hre: HardhatRuntimeEnvironment, chainId: number) 
 }
 
 subtask('useSigner', 'use the default signer or one at the signers index')
+  .addFlag('log', 'log in the console the signer address being used')
   .addOptionalParam('i', 'signer index')
   .setAction(async (args, hre) => {
     const chainId = +(await hre.network.provider.send('eth_chainId'))
@@ -208,6 +221,8 @@ subtask('useSigner', 'use the default signer or one at the signers index')
     else if (args.i) signer = (await hre.ethers.getSigners())[args.i]
     else [signer] = await hre.ethers.getSigners()
 
+    const from = await signer.getAddress()
+    if (args.log) log(`Using signer: ${from}`)
     return signer
   })
 
@@ -266,7 +281,7 @@ task('deploy', 'Deploys the contracts to the network')
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
-const config: HardhatUserConfig = {
+const config = {
   defaultNetwork: 'hardhat',
   networks: {
     dev: {
@@ -353,11 +368,9 @@ const config: HardhatUserConfig = {
   },
   dependencyCompiler: {
     paths: [
-      '@primitivefi/rmm-core/contracts/PrimitiveEngine.sol',
-      '@primitivefi/rmm-core/contracts/PrimitiveFactory.sol',
-      '@primitivefi/rmm-manager/contracts/PrimitiveManager.sol',
-      '@primitivefi/rmm-manager/contracts/PositionRenderer.sol',
-      '@primitivefi/rmm-manager/contracts/PositionDescriptor.sol',
+      '@primitivefi/rmm-manager/contracts/interfaces/external/IWETH9.sol',
+      '@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol',
+      '@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol',
     ],
   },
 }

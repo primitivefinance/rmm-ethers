@@ -16,7 +16,7 @@ import {
   PositionBatchTransferParams,
   PositionRemoveParams,
   PositionTransferParams,
-} from './TransactableRmm'
+} from './types/transactable'
 
 /**
  * Indicates that the transaction hasn't been mined yet.

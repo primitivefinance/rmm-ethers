@@ -11,8 +11,8 @@ on:
   pull_request:
 
 jobs:
-  lint-test:
-    name: Lint and Test
+  test:
+    name: Test
     runs-on: ubuntu-latest
 
     steps:
@@ -28,6 +28,8 @@ jobs:
         run: yarn install --ignore-scripts
 
       - name: Prepare
+        env:
+          TS_NODE_TRANSPILE_ONLY: 1
         run: yarn prepare
 
       - name: Test

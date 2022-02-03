@@ -1,7 +1,7 @@
 import { Signer } from '@ethersproject/abstract-signer'
 
 import { _connectToContracts, _RmmContractAddresses, _RmmContracts, _RmmDeploymentJSON } from './contracts'
-import { EthersProvider, EthersSigner } from './types'
+import { EthersProvider, EthersSigner } from './types/base'
 
 import devOrNull from '../deployments/dev.json'
 import rinkeby from '../deployments/rinkeby.json'

@@ -5,22 +5,34 @@
 ```ts
 
 import { AllocateOptions } from '@primitivefi/rmm-sdk';
+import { BaseContract } from 'ethers';
 import { BatchTransferOptions } from '@primitivefi/rmm-sdk';
-import { BigNumber } from '@ethersproject/bignumber';
+import { BigNumber } from 'ethers';
+import { BigNumber as BigNumber_2 } from '@ethersproject/bignumber';
+import { BigNumberish } from 'ethers';
 import { BlockTag } from '@ethersproject/abstract-provider';
+import { BytesLike } from 'ethers';
+import { CallOverrides } from 'ethers';
 import { Contract } from '@ethersproject/contracts';
 import { ContractInterface } from '@ethersproject/contracts';
+import { ContractTransaction } from 'ethers';
+import type { Event as Event_2 } from 'ethers';
+import type { EventFilter } from 'ethers';
+import { EventFragment } from '@ethersproject/abi';
+import { FunctionFragment } from '@ethersproject/abi';
+import { Listener } from '@ethersproject/providers';
 import { Log } from '@ethersproject/abstract-provider';
 import { LogDescription } from '@ethersproject/abi';
+import { Overrides } from 'ethers';
+import { PayableOverrides } from 'ethers';
 import { Pool } from '@primitivefi/rmm-sdk';
 import { PoolSides } from '@primitivefi/rmm-sdk';
-import { PopulatedTransaction } from '@ethersproject/contracts';
-import { PositionDescriptor } from '@primitivefi/rmm-manager/typechain/PositionDescriptor';
-import { PositionRenderer } from '@primitivefi/rmm-manager/typechain/PositionRenderer';
-import { PrimitiveFactory } from '@primitivefi/rmm-core/typechain/PrimitiveFactory';
-import { PrimitiveManager } from '@primitivefi/rmm-manager/typechain/PrimitiveManager';
+import { PopulatedTransaction } from 'ethers';
+import { PopulatedTransaction as PopulatedTransaction_2 } from '@ethersproject/contracts';
 import { Provider } from '@ethersproject/abstract-provider';
+import { Provider as Provider_2 } from '@ethersproject/providers';
 import { RemoveOptions } from '@primitivefi/rmm-sdk';
+import { Result } from '@ethersproject/abi';
 import { SafeTransferOptions } from '@primitivefi/rmm-sdk';
 import { Signer } from '@ethersproject/abstract-signer';
 import { Signer as Signer_2 } from 'ethers';
@@ -28,6 +40,7 @@ import { SwapOptions } from '@primitivefi/rmm-sdk';
 import { TransactionReceipt } from '@ethersproject/abstract-provider';
 import { TransactionRequest } from '@ethersproject/abstract-provider';
 import { TransactionResponse } from '@ethersproject/abstract-provider';
+import { utils } from 'ethers';
 import { Wei } from 'web3-units';
 
 // @internal (undocumented)
@@ -73,7 +86,7 @@ export interface EthersCallOverrides {
 }
 
 // @public
-export type EthersPopulatedTransaction = PopulatedTransaction;
+export type EthersPopulatedTransaction = PopulatedTransaction_2;
 
 // @public
 export type EthersProvider = Provider;
@@ -132,9 +145,9 @@ export interface EthersTransactionOverrides {
     // (undocumented)
     from?: string;
     // (undocumented)
-    gasLimit?: BigNumber;
+    gasLimit?: BigNumber_2;
     // (undocumented)
-    gasPrice?: BigNumber;
+    gasPrice?: BigNumber_2;
     // (undocumented)
     nonce?: number;
 }
@@ -174,7 +187,7 @@ export interface _InternalEthersRmmConnection extends EthersRmmConnection {
 export type MinedReceipt<R = unknown, D = unknown> = FailedReceipt<R> | SuccessfulReceipt<R, D>;
 
 // @beta
-export function parseTokenURI(uri: string): any;
+export function parseBase64TokenURI(uri: string): any;
 
 // @public
 export type PendingReceipt = {
@@ -346,6 +359,87 @@ export const _RmmContractAbis: {
     positionRenderer: any[];
     positionDescriptor: any[];
     primitiveEngine: any;
+    positionRendererProxyAdmin: ({
+        anonymous: boolean;
+        inputs: {
+            indexed: boolean;
+            internalType: string;
+            name: string;
+            type: string;
+        }[];
+        name: string;
+        type: string;
+        outputs?: undefined;
+        stateMutability?: undefined;
+    } | {
+        inputs: {
+            internalType: string;
+            name: string;
+            type: string;
+        }[];
+        name: string;
+        outputs: {
+            internalType: string;
+            name: string;
+            type: string;
+        }[];
+        stateMutability: string;
+        type: string;
+        anonymous?: undefined;
+    })[];
+    positionRendererTransparentUpgradeableProxy: ({
+        inputs: {
+            internalType: string;
+            name: string;
+            type: string;
+        }[];
+        stateMutability: string;
+        type: string;
+        anonymous?: undefined;
+        name?: undefined;
+        outputs?: undefined;
+    } | {
+        anonymous: boolean;
+        inputs: {
+            indexed: boolean;
+            internalType: string;
+            name: string;
+            type: string;
+        }[];
+        name: string;
+        type: string;
+        stateMutability?: undefined;
+        outputs?: undefined;
+    } | {
+        stateMutability: string;
+        type: string;
+        inputs?: undefined;
+        anonymous?: undefined;
+        name?: undefined;
+        outputs?: undefined;
+    } | {
+        inputs: never[];
+        name: string;
+        outputs: {
+            internalType: string;
+            name: string;
+            type: string;
+        }[];
+        stateMutability: string;
+        type: string;
+        anonymous?: undefined;
+    } | {
+        inputs: {
+            internalType: string;
+            name: string;
+            type: string;
+        }[];
+        name: string;
+        outputs: never[];
+        stateMutability: string;
+        type: string;
+        anonymous?: undefined;
+    })[];
 };
 
 // Warning: (ae-forgotten-export) The symbol "RmmContractsKey" needs to be exported by the entry point index.d.ts
@@ -363,6 +457,14 @@ export interface _RmmContracts {
     //
     // (undocumented)
     positionRenderer: PositionRendererContract;
+    // Warning: (ae-forgotten-export) The symbol "PositionRendererProxyAdmin" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    positionRendererProxyAdmin: PositionRendererProxyAdmin;
+    // Warning: (ae-forgotten-export) The symbol "PositionRendererTransparentUpgradeableProxy" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    positionRendererTransparentUpgradeableProxy: PositionRendererTransparentUpgradeableProxy;
     // Warning: (ae-forgotten-export) The symbol "FactoryContract" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)

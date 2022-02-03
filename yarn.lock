@@ -2002,7 +2002,7 @@
   dependencies:
     "@octokit/openapi-types" "^11.2.0"
 
-"@openzeppelin/contracts@^4.1.0":
+"@openzeppelin/contracts@^4.1.0", "@openzeppelin/contracts@^4.4.2":
   version "4.4.2"
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.4.2.tgz#4e889c9c66e736f7de189a53f8ba5b8d789425c2"
   integrity sha512-NyJV7sJgoGYqbtNUWgzzOGW4T6rR19FmX1IJgXGdapGPWsuMelGJn9h03nos0iqfforCbCB0iYIR0MtIuIFLLw==
@@ -2014,18 +2014,18 @@
   dependencies:
     squirrelly "^8.0.8"
 
-"@primitivefi/rmm-core@^1.0.0-rc.1":
-  version "1.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-core/-/rmm-core-1.0.0-rc.1.tgz#42e378e38d2f8655507c7e790de71c0a10622ff9"
-  integrity sha512-q9Syd9nSWv3xpfMIkPikmUDfDILubtWg8U1xHdlxOwxgQ/f33ZxnA0zje8XoAoce6utwTOn3MAbGpvxe4MIN6g==
+"@primitivefi/rmm-core@^1.0.0-rc.2":
+  version "1.0.0-rc.2"
+  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-core/-/rmm-core-1.0.0-rc.2.tgz#b30741108d1bc1fe52dd1db32b449cdf7919ffd6"
+  integrity sha512-dX58g1WcKfm+nWNZtWtPPMJp1GYe6Py0PxDbc7tvcTEXTYgf2/FHYUjEO9KEKqrFKgPLHh3B2NQrCIiXvHE/DQ==
 
-"@primitivefi/rmm-manager@^1.0.0-rc.1":
-  version "1.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-manager/-/rmm-manager-1.0.0-rc.1.tgz#6ca21e96d14f304e56e02aefaaea15d5a3352a2a"
-  integrity sha512-+aJOw8eU9b0B1dZOWkIWoAbApVOMf3DGzmKRBSV4ugSd2mMdlgMMoFosVpd3AZU4n79yBzM5LgvxM7y6Ley+sA==
+"@primitivefi/rmm-manager@^1.0.0-rc.3":
+  version "1.0.0-rc.3"
+  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-manager/-/rmm-manager-1.0.0-rc.3.tgz#481d6e1dd6a0edad8d163a7c2ae4271e201c9b84"
+  integrity sha512-orXVdIF9wdvoRl67Os8Goz0OV9cWV87a7EsV/izb84V+yPVWDrNTQcbQbxDEl10Zl+NqX0FbOSy8TLj8HnySdw==
   dependencies:
     "@openzeppelin/contracts" "^4.1.0"
-    "@primitivefi/rmm-core" "^1.0.0-rc.1"
+    "@primitivefi/rmm-core" "^1.0.0-rc.2"
     base64-sol "^1.1.0"
 
 "@primitivefi/rmm-math@^2.0.0-rc.1":
@@ -2036,13 +2036,13 @@
     gaussian "^1.2.0"
     numeric "^1.2.6"
 
-"@primitivefi/rmm-sdk@^1.1.0-rc.2":
-  version "1.1.0-rc.2"
-  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-sdk/-/rmm-sdk-1.1.0-rc.2.tgz#5954de258f6acb6828db9ef96dd0c6f21b251c2f"
-  integrity sha512-o8TXi7WYQkbNvH/o+X7IA3TpX/FXpaAoEUP9eZQFx4y0a1mIwa/her+QQAZeUr2kg2BFN5LBB1o2nps6Ithglg==
+"@primitivefi/rmm-sdk@^1.1.0-rc.3":
+  version "1.1.0-rc.3"
+  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-sdk/-/rmm-sdk-1.1.0-rc.3.tgz#1a8208c1c58195df29f565673911a1f5f4af9a1a"
+  integrity sha512-c+t/cYzFb0aFqnhl3BA3MOK6GvLnrCjW+1wHbrZKDr79CsMUGULnqECGy9gMnscnObqfBKk1c36AngJXrchmCA==
   dependencies:
-    "@primitivefi/rmm-core" "^1.0.0-rc.1"
-    "@primitivefi/rmm-manager" "^1.0.0-rc.1"
+    "@primitivefi/rmm-core" "^1.0.0-rc.2"
+    "@primitivefi/rmm-manager" "^1.0.0-rc.3"
     "@primitivefi/rmm-math" "^2.0.0-rc.1"
     "@uniswap/sdk-core" "^3.0.1"
     shelljs "0.8.5"
@@ -2354,10 +2354,10 @@
     lodash "^4.17.15"
     ts-essentials "^7.0.1"
 
-"@typechain/hardhat@^3.1.0":
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/@typechain/hardhat/-/hardhat-3.1.0.tgz#88bd9e9d55e30fbece6fbb34c03ecd40a8b2013a"
-  integrity sha512-C6Be6l+vTpao19PvMH2CB/lhL1TRLkhdPkvQCF/zqkY1e+0iqY2Bb9Jd3PTt6I8QvMm89ZDerrCJC9927ZHmlg==
+"@typechain/hardhat@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@typechain/hardhat/-/hardhat-4.0.0.tgz#976d4dcc0d9237602d722801d30adc573c529981"
+  integrity sha512-SeEKtiHu4Io3LHhE8VV3orJbsj7dwJZX8pzSTv7WQR38P18vOLm2M52GrykVinMpkLK0uVc88ICT58emvfn74w==
   dependencies:
     fs-extra "^9.1.0"
 
@@ -7620,6 +7620,11 @@ jpjs@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/jpjs/-/jpjs-1.2.1.tgz#f343833de8838a5beba1f42d5a219be0114c44b7"
   integrity sha512-GxJWybWU4NV0RNKi6EIqk6IRPOTqd/h+U7sbtyuD7yUISUzV78LdHnq2xkevJsTlz/EImux4sWj+wfMiwKLkiw==
+
+js-base64@^3.7.2:
+  version "3.7.2"
+  resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-3.7.2.tgz#816d11d81a8aff241603d19ce5761e13e41d7745"
+  integrity sha512-NnRs6dsyqUXejqk/yv2aiXlAvOs56sLkX6nUdeaNezI5LFFLlsZjOThmwnrcwh5ZZRwZlCMnVAY3CvhIhoVEKQ==
 
 js-cookie@^2.2.1:
   version "2.2.1"

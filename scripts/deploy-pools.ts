@@ -3,30 +3,29 @@ import hre from 'hardhat'
 import { Signer } from '@ethersproject/abstract-signer'
 import { parsePercentage, parseWei, Time } from 'web3-units'
 import { DefenderRelaySigner } from 'defender-relay-client/lib/ethers'
-import { AllocateOptions, Pool, PoolSides } from '@primitivefi/rmm-sdk'
+import { AllocateOptions, Engine, Pool, PoolSides } from '@primitivefi/rmm-sdk'
+import { Ether } from '@uniswap/sdk-core'
+
+import ERC20Artifact from '../artifacts/@primitivefi/rmm-manager/contracts/interfaces/external/IERC20WithMetadata.sol/IERC20WithMetadata.json'
 
 import { log, setSilent } from '../utils/deploy'
 import { deployPool } from '../utils/deployPool'
-import { deployEngine } from '../utils/deployEngine'
 import { PoolConfigType, PoolDeployer, PoolDeployments } from '../utils/poolDeployer'
 
-export const POOL_DEPLOYMENTS_SAVE = path.join('./deployments', 'default', 'pools.json')
+import { ERC20, PrimitiveEngine } from '../typechain'
+
+type Signers = Signer | DefenderRelaySigner
+type CalibrationType = { strike: string; sigma: string; maturity: string; gamma: string }
 
 // --- Config ---
-const DEFAULT_MATURITY = 1642809599 // Fri Jan 21 2022 23:59:59 GMT+0000
+export const POOL_DEPLOYMENTS_SAVE = path.join('./deployments', 'default', 'pools.json')
+const DEFAULT_MATURITY = 1644918397
 const DEFAULT_GAMMA = 0.99
-
 const defaultParams = { maturity: DEFAULT_MATURITY, gamma: DEFAULT_GAMMA }
-const defaultStable = { contractName: 'ERC20', name: 'Test USD Coin', symbol: 'USDC', decimals: 6 }
-const yveCRVDAO = {
-  name: 'yveCRV-DAO',
-  risky: {
-    contractName: 'ERC20',
-    name: 'Test yveCRV-DAO yVault',
-    symbol: 'yveCRV',
-    decimals: 18,
-  },
-  stable: { ...defaultStable },
+
+export const POOL_CONFIG_TO_DEPLOY: PoolConfigType = {
+  name: 'RBN-USDC',
+  engine: '0x2678a653FE4DE7eBcc76d7FC3d27Be62e7E0015A', //rinkeby-rbn-usdc-engine//'0xe7Cad6009A6239bf7F7D68543d555836481f8283',
   spot: 2.42,
   pools: [
     { strike: 2.75, sigma: 1, ...defaultParams },
@@ -38,57 +37,25 @@ const yveCRVDAO = {
   ],
 }
 
-const ribbon = {
-  name: 'Ribbon',
-  risky: {
-    contractName: 'ERC20',
-    name: 'Test Ribbon',
-    symbol: 'RBN',
-    decimals: 18,
-  },
-  stable: { ...defaultStable },
-  spot: 3.22,
-  pools: [
-    { strike: 4.2, sigma: 1, ...defaultParams },
-    { strike: 4.2, sigma: 1.25, ...defaultParams },
-    { strike: 4.2, sigma: 1.5, ...defaultParams },
-    { strike: 5.0, sigma: 1, ...defaultParams },
-    { strike: 5.0, sigma: 1.25, ...defaultParams },
-    { strike: 5.0, sigma: 1.5, ...defaultParams },
-  ],
-}
-
-interface IAggregatedPools {
-  vecrv: PoolConfigType
-  rbn: PoolConfigType
-}
-
-const AGGREGATED_POOLS: IAggregatedPools = {
-  vecrv: yveCRVDAO,
-  rbn: ribbon,
-}
-
-type Signers = Signer | DefenderRelaySigner
-type CalibrationType = { strike: string; sigma: string; maturity: string; gamma: string }
-
-export const POOL_CONFIG_TO_DEPLOY = ribbon
-
 export async function deployPools(deployer: PoolDeployer) {
-  const from = await deployer.rmm.connection.signer.getAddress()
+  const signer = deployer.rmm.connection.signer
+  const from = await signer.getAddress()
 
-  try {
-    log(`Attempting to load or deploy tokens to deploy pools for`)
-    await deployer.loadOrDeployTokens(hre)
-  } catch (e) {
-    log('Thrown when deploying')
-    throw new Error('Thrown on attempting to deploy testnet tokens')
-  }
+  const engine = new hre.ethers.Contract(POOL_CONFIG_TO_DEPLOY.engine, Engine.ABI, signer) as PrimitiveEngine
+  log(`Got engine: ${engine.address}`)
+
+  const [token0, token1] = (await Promise.all([engine.risky(), engine.stable()])).map(
+    address => new hre.ethers.Contract(address, ERC20Artifact.abi, signer) as ERC20,
+  )
+
+  log(`Loading tokens...`)
+  await deployer.loadTokens(token0, token1)
 
   const poolConfig = deployer.config
   const poolsFromConfig = poolConfig.pools
   const referencePrice = poolConfig.spot
 
-  const pairs = deployer.tokens ? [deployer.tokens] : []
+  const pairs = [[token0, token1]]
 
   if (pairs.length === 0) throw new Error('No loaded tokens')
 
@@ -119,10 +86,6 @@ export async function deployPools(deployer: PoolDeployer) {
         symbol: deployer.token1?.symbol,
       }
 
-      // Get engine, or deploy an engine
-      const engine = await deployEngine(deployer.rmm, riskyToken.address, stableToken.address)
-      log(`Got engine or deployed engine: ${engine.address}`)
-
       // get default parameters
       const minRisky = parseWei('100000000', risky.decimals)
       const minStable = parseWei('100000000', stable.decimals)
@@ -149,7 +112,6 @@ export async function deployPools(deployer: PoolDeployer) {
         )
         poolEntities.push(pool)
       })
-
       log(`   Got all pools: ${poolEntities.length}`)
 
       log(`   Approving tokens if needed`)
@@ -161,20 +123,23 @@ export async function deployPools(deployer: PoolDeployer) {
       log('   Creating pools')
       let deployedPools: PoolDeployments = {}
       for (let i = 0; i < poolEntities.length; i++) {
+        const useNative = risky.symbol.toLowerCase() === 'weth' ? Ether.onChain(deployer.chainId) : undefined
         const pool = poolEntities[i]
 
         const { delRisky, delStable } = pool.liquidityQuote(delLiquidity, PoolSides.RMM_LP)
 
-        await deployer.mintTestnetTokens(from, [delRisky, delStable])
+        log(`   Using native? ${useNative ? 'yes' : 'no'}`)
+        if (typeof useNative === 'undefined') await deployer.mintTestnetTokens(from, [delRisky, delStable])
 
         const options: AllocateOptions = {
           recipient: from,
-          slippageTolerance: parsePercentage(0.01),
+          slippageTolerance: parsePercentage(0.0),
           createPool: true,
           fromMargin: false,
           delRisky: pool.reserveRisky.add(1),
           delStable: pool.reserveStable.add(1),
           delLiquidity: pool.liquidity,
+          useNative,
         }
 
         const poolSymbol = deployer.getPoolSymbol(
@@ -193,6 +158,7 @@ export async function deployPools(deployer: PoolDeployer) {
           if (typeof details === 'undefined') continue
           const poolId = details.newPosition.pool.poolId
 
+          // { [poolId]: poolSymbol }[]
           deployedPools = Object.assign(deployedPools, {
             [poolId]: poolSymbol,
           })

@@ -23,6 +23,6 @@
     "esModuleInterop": true,
     "resolveJsonModule": true
   },
-  "include": ["src", "types", "typechain"],
+  "include": ["src", "typechain"],
   "files": ["./index.ts"]
 }

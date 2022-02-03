@@ -1,5 +1,16 @@
 {
-  "4": {},
+  "4": {
+    "RBN-USDC": {
+      "name": "RMM-LP-RBN/USDC",
+      "engine": "0x2678a653FE4DE7eBcc76d7FC3d27Be62e7E0015A",
+      "pools": {
+        "0x00fb3fdf80d53928fdcf5210348d709d948cc109e598bb2bf8686558e9b12432": "RMM-LP-RBN/USDC-2.75-1-1644918397-0.99",
+        "0x7de8a7a8c9339b2076f318afb56e0bf0a90719a4b6eb7d938ed449eab4ab05fb": "RMM-LP-RBN/USDC-2.75-1.25-1644918397-0.99",
+        "0xe5023e162f2a1c69c21e2fa923ce1efffb7f9a48caf9747b997ce6341640bd26": "RMM-LP-RBN/USDC-2.75-1.5-1644918397-0.99",
+        "0x413af4ff4d08283ca37c3b2b3a891967100808a2c9fad7dea6bb861008c57a98": "RMM-LP-RBN/USDC-3-1-1644918397-0.99"
+      }
+    }
+  },
   "5": {},
   "42": {},
   "1337": {}

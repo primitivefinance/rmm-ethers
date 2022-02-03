@@ -25,9 +25,9 @@ import {
   PositionRemoveParams,
   PositionTransferParams,
   _PoolAction,
-} from './TransactableRmm'
+} from './types/transactable'
 
-import { EthersTransactionReceipt, EthersTransactionResponse } from './types'
+import { EthersTransactionReceipt, EthersTransactionResponse } from './types/base'
 
 // --- Transaction Failed ---
 /** @internal */
@@ -360,9 +360,10 @@ export class PopulatableEthersRmm
     )
 
     return new PopulatedEthersSignerTransaction(populated, this._readable.connection, ({ logs }) => {
+      const [engine] = primitiveFactory.extractEvents(logs, 'DeployEngine').map(({ args: { engine } }) => engine)
       return {
         params,
-        engine: '',
+        engine: engine,
       }
     })
   }

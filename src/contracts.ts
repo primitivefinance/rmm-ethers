@@ -2,12 +2,17 @@ import { LogDescription } from '@ethersproject/abi'
 import { Contract, ContractInterface } from '@ethersproject/contracts'
 import { Log } from '@ethersproject/abstract-provider'
 
-import { PrimitiveManager } from '@primitivefi/rmm-manager/typechain/PrimitiveManager'
-import { PositionRenderer } from '@primitivefi/rmm-manager/typechain/PositionRenderer'
-import { PositionDescriptor } from '@primitivefi/rmm-manager/typechain/PositionDescriptor'
-import { PrimitiveFactory } from '@primitivefi/rmm-core/typechain/PrimitiveFactory'
+import { ProxyAdminArtifact } from './abis'
+import { TransparentUpgradeableProxyArtifact } from './abis'
 
-import { EthersProvider, EthersSigner } from './types'
+import { PrimitiveManager } from '../typechain'
+import { PositionRenderer } from '../typechain'
+import { PositionDescriptor } from '../typechain'
+import { PrimitiveFactory } from '../typechain'
+import { ProxyAdmin } from '../typechain/ProxyAdmin'
+import { TransparentUpgradeableProxy } from '../typechain/TransparentUpgradeableProxy'
+
+import { EthersProvider, EthersSigner } from './types/base'
 import { BigNumber } from '@ethersproject/bignumber'
 import {
   Engine,
@@ -92,11 +97,16 @@ interface ManagerContract extends _TypedRmmContract<PrimitiveManager> {
 }
 
 interface FactoryContract extends _TypedRmmContract<PrimitiveFactory> {
-  extractEvents(logs: Log[], name: 'DeployedEngine'): _TypedLogDescription<{ engine: string }>[]
+  extractEvents(
+    logs: Log[],
+    name: 'DeployEngine',
+  ): _TypedLogDescription<{ from: string; risky: string; stable: string; engine: string }>[]
 }
 
 type PositionRendererContract = _TypedRmmContract<PositionRenderer>
 type PositionDescriptorContract = _TypedRmmContract<PositionDescriptor>
+type PositionRendererProxyAdmin = _TypedRmmContract<ProxyAdmin>
+type PositionRendererTransparentUpgradeableProxy = _TypedRmmContract<TransparentUpgradeableProxy>
 
 /** @internal */
 export interface _RmmContracts {
@@ -104,6 +114,8 @@ export interface _RmmContracts {
   primitiveManager: ManagerContract
   positionRenderer: PositionRendererContract
   positionDescriptor: PositionDescriptorContract
+  positionRendererProxyAdmin: PositionRendererProxyAdmin
+  positionRendererTransparentUpgradeableProxy: PositionRendererTransparentUpgradeableProxy
 }
 
 /** @internal */
@@ -113,6 +125,8 @@ export const _RmmContractAbis = {
   positionRenderer: PositionRendererManager.ABI,
   positionDescriptor: PositionDescriptorManager.ABI,
   primitiveEngine: Engine.ABI,
+  positionRendererProxyAdmin: ProxyAdminArtifact.abi,
+  positionRendererTransparentUpgradeableProxy: TransparentUpgradeableProxyArtifact.abi,
 }
 
 type RmmContractsKey = keyof _RmmContracts
