@@ -12,18 +12,18 @@ import { log, setSilent } from '../utils/deploy'
 import { deployPool } from '../utils/deployPool'
 import { PoolConfigType, PoolDeployer, PoolDeployments } from '../utils/poolDeployer'
 
-import { ERC20, PrimitiveEngine } from '../typechain'
+import { IERC20WithMetadata, PrimitiveEngine } from '../typechain'
 
 type Signers = Signer | DefenderRelaySigner
 type CalibrationType = { strike: string; sigma: string; maturity: string; gamma: string }
 
 // --- Config ---
 export const POOL_DEPLOYMENTS_SAVE = path.join('./deployments', 'default', 'pools.json')
-const DEFAULT_MATURITY = 1644918397
+const DEFAULT_MATURITY = 1648839599
 const DEFAULT_GAMMA = 0.99
 const defaultParams = { maturity: DEFAULT_MATURITY, gamma: DEFAULT_GAMMA }
 
-export const POOL_CONFIG_TO_DEPLOY: PoolConfigType = {
+/* export const POOL_CONFIG_TO_DEPLOY: PoolConfigType = {
   name: 'RBN-USDC',
   engine: '0x2678a653FE4DE7eBcc76d7FC3d27Be62e7E0015A', //rinkeby-rbn-usdc-engine//'0xe7Cad6009A6239bf7F7D68543d555836481f8283',
   spot: 2.42,
@@ -35,6 +35,35 @@ export const POOL_CONFIG_TO_DEPLOY: PoolConfigType = {
     { strike: 3, sigma: 1.25, ...defaultParams },
     { strike: 3, sigma: 1.5, ...defaultParams },
   ],
+} */
+
+export const POOL_CONFIG_TO_DEPLOY: PoolConfigType = {
+  name: 'WETH-USDC',
+  engine: '0x7CBD951e9b0254a7C0EcD90b34428Ee0c06B3f93', // weth-usdc rinkeby
+  spot: 3000,
+  pools: [
+    { strike: 3500, sigma: 0.7, ...defaultParams },
+    { strike: 3500, sigma: 0.75, ...defaultParams },
+    { strike: 3500, sigma: 0.8, ...defaultParams },
+    { strike: 3500, sigma: 0.85, ...defaultParams },
+    { strike: 3500, sigma: 0.9, ...defaultParams },
+    { strike: 3500, sigma: 0.95, ...defaultParams },
+    { strike: 3500, sigma: 1, ...defaultParams },
+    { strike: 3500, sigma: 1.05, ...defaultParams },
+    { strike: 3500, sigma: 1.1, ...defaultParams },
+    { strike: 3500, sigma: 1.15, ...defaultParams },
+    { strike: 3500, sigma: 1.2, ...defaultParams },
+    { strike: 3500, sigma: 1.25, ...defaultParams },
+    { strike: 3500, sigma: 1.3, ...defaultParams },
+    { strike: 3500, sigma: 1.35, ...defaultParams },
+    { strike: 3500, sigma: 1.4, ...defaultParams },
+    { strike: 3500, sigma: 1.45, ...defaultParams },
+    { strike: 3500, sigma: 1.5, ...defaultParams },
+    { strike: 3500, sigma: 1.55, ...defaultParams },
+    { strike: 3500, sigma: 1.6, ...defaultParams },
+    { strike: 3500, sigma: 1.65, ...defaultParams },
+    { strike: 3500, sigma: 1.7, ...defaultParams },
+  ],
 }
 
 export async function deployPools(deployer: PoolDeployer) {
@@ -45,7 +74,7 @@ export async function deployPools(deployer: PoolDeployer) {
   log(`Got engine: ${engine.address}`)
 
   const [token0, token1] = (await Promise.all([engine.risky(), engine.stable()])).map(
-    address => new hre.ethers.Contract(address, ERC20Artifact.abi, signer) as ERC20,
+    address => new hre.ethers.Contract(address, ERC20Artifact.abi, signer) as IERC20WithMetadata,
   )
 
   log(`Loading tokens...`)
@@ -89,7 +118,7 @@ export async function deployPools(deployer: PoolDeployer) {
       // get default parameters
       const minRisky = parseWei('100000000', risky.decimals)
       const minStable = parseWei('100000000', stable.decimals)
-      const delLiquidity = parseWei(1)
+      const delLiquidity = parseWei(0.1)
 
       // get params
       const poolEntities: Pool[] = []

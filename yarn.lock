@@ -2014,18 +2014,18 @@
   dependencies:
     squirrelly "^8.0.8"
 
-"@primitivefi/rmm-core@^1.0.0-rc.2":
-  version "1.0.0-rc.2"
-  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-core/-/rmm-core-1.0.0-rc.2.tgz#b30741108d1bc1fe52dd1db32b449cdf7919ffd6"
-  integrity sha512-dX58g1WcKfm+nWNZtWtPPMJp1GYe6Py0PxDbc7tvcTEXTYgf2/FHYUjEO9KEKqrFKgPLHh3B2NQrCIiXvHE/DQ==
+"@primitivefi/rmm-core@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-core/-/rmm-core-1.0.0.tgz#cddd7d554f34179312a34208d40f4d4ff573970c"
+  integrity sha512-ac12fse0rRicTOJLssRPW+X36sZSefnZ/Dz9ElIwh586CiY8O+tJLWg4T/B1ymvDF2ils+RtSLWxMWQ1Mb4k9Q==
 
-"@primitivefi/rmm-manager@^1.0.0-rc.3":
-  version "1.0.0-rc.3"
-  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-manager/-/rmm-manager-1.0.0-rc.3.tgz#481d6e1dd6a0edad8d163a7c2ae4271e201c9b84"
-  integrity sha512-orXVdIF9wdvoRl67Os8Goz0OV9cWV87a7EsV/izb84V+yPVWDrNTQcbQbxDEl10Zl+NqX0FbOSy8TLj8HnySdw==
+"@primitivefi/rmm-manager@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-manager/-/rmm-manager-1.0.0.tgz#f95a95925d0a3ff4c224f2fcf9255d33c4b21fa4"
+  integrity sha512-ccaQsuNqKBLPjNFRezc9YRt4Uu9d6VJgNlJ8Lp2Z/AojT7P/C7gDBvgGN+GUsGKVAkhHFu9oq65UPfLcVVjeEQ==
   dependencies:
     "@openzeppelin/contracts" "^4.1.0"
-    "@primitivefi/rmm-core" "^1.0.0-rc.2"
+    "@primitivefi/rmm-core" "^1.0.0"
     base64-sol "^1.1.0"
 
 "@primitivefi/rmm-math@^2.0.0-rc.1":
@@ -2036,13 +2036,12 @@
     gaussian "^1.2.0"
     numeric "^1.2.6"
 
-"@primitivefi/rmm-sdk@^1.1.0-rc.3":
-  version "1.1.0-rc.3"
-  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-sdk/-/rmm-sdk-1.1.0-rc.3.tgz#1a8208c1c58195df29f565673911a1f5f4af9a1a"
-  integrity sha512-c+t/cYzFb0aFqnhl3BA3MOK6GvLnrCjW+1wHbrZKDr79CsMUGULnqECGy9gMnscnObqfBKk1c36AngJXrchmCA==
+"@primitivefi/rmm-sdk@1.1.0-rc.5":
+  version "1.1.0-rc.5"
+  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-sdk/-/rmm-sdk-1.1.0-rc.5.tgz#b07264bbec81dbe32b729418fb74fa07ff9420de"
+  integrity sha512-wpQMiDgje4BB/Z7A7mngUY72IEOqvzeL6YSKXCBfWd6TkNJ+QDaRl4Fr8NURopJ67AszPJE5q7g0ZFdQS+cmKA==
   dependencies:
-    "@primitivefi/rmm-core" "^1.0.0-rc.2"
-    "@primitivefi/rmm-manager" "^1.0.0-rc.3"
+    "@primitivefi/rmm-manager" "^1.0.0"
     "@primitivefi/rmm-math" "^2.0.0-rc.1"
     "@uniswap/sdk-core" "^3.0.1"
     shelljs "0.8.5"

@@ -31,6 +31,9 @@ export async function deployPool(
     pool.tau.years,
     referencePrice,
   )
+  // delRisky and delStable amounts based on liquidity
+  options.delRisky = options.delRisky.mul(options.delLiquidity).div(1e18)
+  options.delStable = options.delStable.mul(options.delLiquidity).div(1e18)
 
   if (estimatedRisky < 1e-6) throw new Error(`Estimated risky reserves are too low: ${estimatedRisky}  < 1e-6`)
   if (estimatedRisky > 1 - 1e-6) throw new Error(`Estimated risky reserves are too high: ${estimatedRisky} > 1 - 1e-6`)
@@ -44,6 +47,7 @@ export async function deployPool(
     positionAdjustmentDetails = await rmm.createPool({ pool, options })
   } catch (e) {
     console.log(`Failed on attempting to createPool with code: ${(e as any)?.code ? (e as any).code : e}`)
+    console.log(e)
   }
 
   return positionAdjustmentDetails
