@@ -19,7 +19,7 @@ type CalibrationType = { strike: string; sigma: string; maturity: string; gamma:
 
 // --- Config ---
 export const POOL_DEPLOYMENTS_SAVE = path.join('./deployments', 'default', 'pools.json')
-const DEFAULT_MATURITY = 1648839599
+const DEFAULT_MATURITY = 1648771200
 const DEFAULT_GAMMA = 0.99
 const defaultParams = { maturity: DEFAULT_MATURITY, gamma: DEFAULT_GAMMA }
 
