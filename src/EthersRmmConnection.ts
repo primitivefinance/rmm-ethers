@@ -4,6 +4,7 @@ import { _connectToContracts, _RmmContractAddresses, _RmmContracts, _RmmDeployme
 import { EthersProvider, EthersSigner } from './types/base'
 
 import devOrNull from '../deployments/dev.json'
+import mainnet from '../deployments/mainnet.json'
 import rinkeby from '../deployments/rinkeby.json'
 import goerli from '../deployments/goerli.json'
 import kovan from '../deployments/kovan.json'
@@ -11,6 +12,7 @@ import kovan from '../deployments/kovan.json'
 const dev = devOrNull as _RmmDeploymentJSON | null
 
 const deployments: { [chainId: number]: _RmmDeploymentJSON | undefined } = {
+  [mainnet.chainId]: mainnet,
   [rinkeby.chainId]: rinkeby,
   [goerli.chainId]: goerli,
   [kovan.chainId]: kovan,

@@ -2,7 +2,7 @@ import { task } from 'hardhat/config'
 import { utils } from 'ethers'
 import PrimitiveFactory from '@primitivefi/rmm-core/artifacts/contracts/PrimitiveFactory.sol/PrimitiveFactory.json'
 
-const FACTORY_DEPLOYMENT_HASH = '0x02783ecd003548fb4dc3796ff7577e76525fbb74cb56e8f96f51c9a17c5d8bed'
+const FACTORY_DEPLOYMENT_HASH = '0xf84c33e6f33cc5de81934d8f1e8ea3ff1ff5e6edc5d8a534c1d1ffe06a257c58'
 
 task('checkDeployedBytecode', 'Checks if the engine bytecode hashes are matching')
   .addOptionalParam('factory', 'Address of the factory')
