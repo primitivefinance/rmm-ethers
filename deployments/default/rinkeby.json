@@ -1,15 +1,15 @@
 {
   "chainId": 4,
-  "version": "ae6c200a36f9dfcc65346c8c7287e4ab06a0efb3",
-  "deploymentDate": 1647298242487,
+  "version": "2fb768fa7ceadc075eb21f7cf223da194e1dde26",
+  "deploymentDate": 1647975234188,
   "_isDev": false,
-  "startBlock": 10329629,
+  "startBlock": 10372411,
   "addresses": {
-    "primitiveFactory": "0x0dBd616579ade6E4B4c2ff9d3c39ACCF2FC80009",
-    "positionRenderer": "0x6e0FA4d139f9a5eA67fe76697811C0a727377624",
-    "positionDescriptor": "0x9be88EfA51dAa727f7E2AC93c62d22e6c8CfA5e6",
-    "primitiveManager": "0x50BDebb1C5b6C9AaDa0B8eaA9780cDBE1A410259",
-    "positionRendererProxyAdmin": "0xA5fdcca430d6BE8fF5136a146bEDa6Ee2C9764c3",
-    "positionRendererTransparentUpgradeableProxy": "0xff22952c92470d651fc0280675F8fc6785FfeF0A"
+    "primitiveFactory": "0x0aB152c28C8A197C84EEbd95B4E8E76b7a9cCd95",
+    "positionRenderer": "0xB6d697EA636F06b19e98e4E49c4036c966F68b6A",
+    "positionDescriptor": "0xf7486c0bE8c68278Cc7bB8B7138f9488dd5834c5",
+    "primitiveManager": "0x8487d65F4987AE33BaB8f37be7Ec71D519B21e52",
+    "positionRendererProxyAdmin": "0x0000000000000000000000000000000000000000",
+    "positionRendererTransparentUpgradeableProxy": "0x0000000000000000000000000000000000000000"
   }
 }

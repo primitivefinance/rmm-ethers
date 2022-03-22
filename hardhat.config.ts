@@ -18,9 +18,11 @@ import 'hardhat-dependency-compiler'
 //import './tasks/deployPool.task'
 //import './tasks/useToken.task'
 
+import './tasks/checkDeployedBytecode.task'
 import './tasks/getCalibration.task'
 import './tasks/getEngine.task'
 import './tasks/getReserves.task'
+import './tasks/checkImmutables.task'
 
 import { Signer } from '@ethersproject/abstract-signer'
 import { BigNumber } from '@ethersproject/bignumber'
@@ -36,6 +38,8 @@ import { EthersRmm } from './src'
 const MNEMONIC = process.env.MNEMONIC || ''
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || ''
 const INFURA_API_KEY = process.env.INFURA_API_KEY || ''
+
+const DEPLOYER_KEY = process.env.DEPLOYER_KEY || ''
 
 const {
   RELAY_KOVAN_SECRET,
@@ -56,14 +60,11 @@ const {
 function createTestnetConfig(network: keyof typeof chainIds): NetworkUserConfig {
   const url: string = 'https://' + network + '.infura.io/v3/' + INFURA_API_KEY
   return {
-    accounts: {
-      count: 10,
-      initialIndex: 0,
-      mnemonic: MNEMONIC,
-      path: "m/44'/60'/0'/0",
-    },
+    accounts: [DEPLOYER_KEY],
     chainId: chainIds[network],
     url,
+    gas: 'auto',
+    gasPrice: 'auto',
   }
 }
 

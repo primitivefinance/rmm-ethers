@@ -10,7 +10,16 @@ import { _RmmContractAddresses, _RmmContracts, _RmmDeploymentJSON, _connectToCon
 import ProxyAdmin from '@openzeppelin/contracts/build/contracts/ProxyAdmin.json'
 import TransparentUpgradeableProxy from '@openzeppelin/contracts/build/contracts/TransparentUpgradeableProxy.json'
 
+import PrimitiveFactory from '@primitivefi/rmm-core/artifacts/contracts/PrimitiveFactory.sol/PrimitiveFactory.json'
+import { Interface } from 'ethers/lib/utils'
+
 let silent = true
+
+function getFactoryOf(abi: any[], bytecode: string, signer: Signer): ContractFactory {
+  const i = new Interface(abi)
+  const f = new ContractFactory(i, bytecode, signer)
+  return f
+}
 
 export const log = (...args: unknown[]): void => {
   if (!silent) {
@@ -92,7 +101,7 @@ const deployContracts = async (
 ): Promise<[addresses: _RmmContractAddresses, startBlock: number]> => {
   const [primitiveFactory, startBlock] = await deployContractAndGetBlockNumber(
     deployer,
-    async (_, signer) => FactoryManager.getFactory(signer),
+    async (_, signer) => getFactoryOf(PrimitiveFactory.abi, PrimitiveFactory.bytecode, signer),
     'PrimitiveFactory',
     { ...overrides },
   )
@@ -105,9 +114,7 @@ const deployContracts = async (
     },
   )
 
-  const { admin, upgradeableProxy } = await deployUpgradableContract(positionRenderer, deployer, 'PositionRenderer')
-
-  const descriptorArgs = [upgradeableProxy]
+  const descriptorArgs = [positionRenderer]
   const positionDescriptor = await deployContract(
     deployer,
     async (_, signer) => PositionDescriptorManager.getFactory(signer),
@@ -133,8 +140,8 @@ const deployContracts = async (
     positionRenderer: positionRenderer,
     positionDescriptor: positionDescriptor,
     primitiveManager: primitiveManager,
-    positionRendererProxyAdmin: admin,
-    positionRendererTransparentUpgradeableProxy: upgradeableProxy,
+    positionRendererProxyAdmin: '0x0000000000000000000000000000000000000000',
+    positionRendererTransparentUpgradeableProxy: '0x0000000000000000000000000000000000000000',
   }
 
   return [addresses, startBlock]
