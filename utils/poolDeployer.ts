@@ -1,19 +1,16 @@
 import fs from 'fs'
-import { Contract, Signer } from 'ethers'
-import { HardhatRuntimeEnvironment } from 'hardhat/types'
+import { Signer } from 'ethers'
 import { Wei } from 'web3-units'
 import { isAddress } from '@ethersproject/address'
 import { MaxUint256 } from '@ethersproject/constants'
 
 import { EthersRmm } from '../src'
-import { ERC20 } from '../typechain/ERC20'
-import ERC20Artifact from '../artifacts/contracts/ERC20.sol/ERC20.json'
+import { IERC20WithMetadata, WETH9 } from '../typechain'
 import { log } from './deploy'
 
 export type PoolConfigType = {
   name: string
-  risky: { contractName: string; name: string; symbol: string; decimals: number }
-  stable: { contractName: string; name: string; symbol: string; decimals: number }
+  engine: string
   spot: number
   pools: { strike: number; sigma: number; maturity: number; gamma: number }[]
 }
@@ -23,8 +20,7 @@ export type PoolDeployments = { [poolId: string]: string }
 
 export interface IPoolDeploymentsJSON {
   name: string
-  risky: TokenLike
-  stable: TokenLike
+  engine: string
   pools: PoolDeployments
 }
 
@@ -43,7 +39,7 @@ export class PoolDeployer {
 
   private _token0?: TokenLike
   private _token1?: TokenLike
-  private _tokens?: ERC20[]
+  private _tokens?: (IERC20WithMetadata | WETH9)[]
 
   constructor(chainId: number, path: string, config: PoolConfigType, rmm: EthersRmm) {
     this.chainId = chainId
@@ -72,11 +68,11 @@ export class PoolDeployer {
     return this._token1
   }
 
-  set tokens(tokens: ERC20[] | undefined) {
+  set tokens(tokens: (IERC20WithMetadata | WETH9)[] | undefined) {
     this._tokens = tokens
   }
 
-  get tokens(): ERC20[] | undefined {
+  get tokens(): (IERC20WithMetadata | WETH9)[] | undefined {
     return this._tokens
   }
 
@@ -96,52 +92,21 @@ export class PoolDeployer {
     return (await readLog(this.chainId, this.config.name, this.path)) as IPoolDeploymentsJSON
   }
 
-  async deployAndSaveToken(hre: HardhatRuntimeEnvironment, slot: keyof PoolConfigType): Promise<ERC20> {
-    if (slot !== 'risky' && slot !== 'stable') throw new Error('Not the right token slot')
-    const loadedDeployment = await this.getDeployment()
-
-    const factory = await hre.ethers.getContractFactory(this.config[slot].contractName, this.signer)
-    const meta = {
-      name: this.config[slot].name,
-      symbol: this.config[slot].symbol,
-      decimals: this.config[slot].decimals,
-    }
-
-    log(`Deploying ${meta.name}!`)
-    const token: ERC20 = (await factory.deploy(meta.name, meta.symbol, meta.decimals)) as ERC20
-    await token.deployed()
-
-    const next: IPoolDeploymentsJSON = {
-      ...loadedDeployment,
-      [slot]: { address: token.address, ...meta },
-    }
-    await updateLog(this.chainId, this.config.name, next, this.path)
-    return token
-  }
-
-  async loadOrDeployTokens(hre: HardhatRuntimeEnvironment): Promise<void> {
-    const tokens = await getPoolTokensFromDeployment(this.config.name, this.chainId, this.path)
-    const [riskyLike, stableLike] = tokens
-
-    let riskyToken: ERC20
-    if (riskyLike?.address) riskyToken = new Contract(riskyLike.address, ERC20Artifact.abi, this.signer) as ERC20
-    else riskyToken = await this.deployAndSaveToken(hre, 'risky')
-
-    let stableToken: ERC20
-    if (stableLike?.address) stableToken = new Contract(stableLike.address, ERC20Artifact.abi, this.signer) as ERC20
-    else stableToken = await this.deployAndSaveToken(hre, 'stable')
-
-    this.token0 = tokens[0]
-    this.token1 = tokens[1]
-    this.tokens = [riskyToken, stableToken]
+  async loadTokens(risky: IERC20WithMetadata, stable: IERC20WithMetadata): Promise<void> {
+    let [name, symbol, decimals] = await Promise.all([risky.name(), risky.symbol(), risky.decimals()])
+    const token0: TokenLike = { address: risky.address, name, symbol, decimals }
+    ;[name, symbol, decimals] = await Promise.all([stable.name(), stable.symbol(), stable.decimals()])
+    const token1: TokenLike = { address: stable.address, name, symbol, decimals }
+    this.token0 = token0
+    this.token1 = token1
+    this.tokens = [risky, stable]
   }
 
   async updatePools(name: string, pools: PoolDeployments): Promise<void> {
     const prev = await this.getDeployment()
     const next: IPoolDeploymentsJSON = {
       name,
-      risky: prev.risky,
-      stable: prev.stable,
+      engine: prev?.engine ?? this.config.engine,
       pools: { ...prev?.pools, ...pools },
     }
     await updateLog(this.chainId, this.config.name, next, this.path)
@@ -185,23 +150,17 @@ export class PoolDeployer {
     // mint tokens if not enough in balances
     try {
       const balances = await Promise.all([riskyToken.balanceOf(account), stableToken.balanceOf(account)])
-
-      if (amounts[0].gt(balances[0])) await riskyToken.mint(account, amounts[0].raw.toHexString())
-      if (amounts[1].gt(balances[1])) await stableToken.mint(account, amounts[1].raw.toHexString())
+      if ((riskyToken as any)?.mint) {
+        if (amounts[0].gt(balances[0])) await (riskyToken as any).mint(account, amounts[0].raw.toHexString())
+      }
+      if ((stableToken as any)?.mint) {
+        if (amounts[1].gt(balances[1])) await (stableToken as any).mint(account, amounts[1].raw.toHexString())
+      }
     } catch (e) {
       log(`Caught on minting tokens`)
       throw new Error(e as any)
     }
   }
-}
-
-async function getPoolTokensFromDeployment(
-  name: string,
-  chainId: number,
-  path: string,
-): Promise<[TokenLike | undefined, TokenLike | undefined]> {
-  const data = (await readLog(chainId, name, path)) as IPoolDeploymentsJSON
-  return [data?.risky, data?.stable]
 }
 
 async function updateLog(chainId: number, contractName: string, data: IPoolDeploymentsJSON, path?: string) {

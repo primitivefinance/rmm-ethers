@@ -164,7 +164,7 @@ library SafeMath {
     }
 }
 
-contract ERC20 {
+contract MintableERC20 {
     using SafeMath for uint256;
 
     string public name;

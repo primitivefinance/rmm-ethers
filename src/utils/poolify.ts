@@ -1,19 +1,5 @@
 import { Pool } from '@primitivefi/rmm-sdk'
-
-/**
- * Parses raw string URI encoded in Base64.
- *
- * @param uri - JSON string with a `base64` encoding
- *
- * @returns Parsed JSON of `uri`.
- *
- * @beta
- */
-export function parseTokenURI(uri: string) {
-  const json = Buffer.from(uri.substring(29), 'base64').toString()
-  const result = JSON.parse(json)
-  return result
-}
+import { parseBase64TokenURI } from './parseBase64TokenURI'
 
 /**
  * Parses a raw RMM-LP uri string into a Pool entity.
@@ -24,7 +10,7 @@ export function parseTokenURI(uri: string) {
  * @beta
  */
 export function poolify(raw: string): Pool {
-  const data = parseTokenURI(raw)
+  const data = parseBase64TokenURI(raw)
   const {
     factory,
     riskyName,

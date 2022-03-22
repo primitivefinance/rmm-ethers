@@ -7,8 +7,19 @@ import {
   PositionRendererManager,
 } from '@primitivefi/rmm-sdk'
 import { _RmmContractAddresses, _RmmContracts, _RmmDeploymentJSON, _connectToContracts } from '../src/contracts'
+import ProxyAdmin from '@openzeppelin/contracts/build/contracts/ProxyAdmin.json'
+import TransparentUpgradeableProxy from '@openzeppelin/contracts/build/contracts/TransparentUpgradeableProxy.json'
+
+import PrimitiveFactory from '@primitivefi/rmm-core/artifacts/contracts/PrimitiveFactory.sol/PrimitiveFactory.json'
+import { Interface } from 'ethers/lib/utils'
 
 let silent = true
+
+function getFactoryOf(abi: any[], bytecode: string, signer: Signer): ContractFactory {
+  const i = new Interface(abi)
+  const f = new ContractFactory(i, bytecode, signer)
+  return f
+}
 
 export const log = (...args: unknown[]): void => {
   if (!silent) {
@@ -44,6 +55,42 @@ const deployContractAndGetBlockNumber = async (
   return [contract.address, receipt.blockNumber]
 }
 
+const deployUpgradableContract = async (
+  target: string,
+  signer: Signer,
+  contractName: string,
+  ...args: unknown[]
+): Promise<{ admin: string; upgradeableProxy: string }> => {
+  log(`Deploying Proxy Admin for ${contractName} ...`)
+  const proxyAdminFac = new ContractFactory(ProxyAdmin.abi, ProxyAdmin.bytecode, signer)
+  const upgradableFac = new ContractFactory(
+    TransparentUpgradeableProxy.abi,
+    TransparentUpgradeableProxy.bytecode,
+    signer,
+  )
+
+  const proxyAdmin = await proxyAdminFac.deploy()
+  log(`Waiting for transaction ${proxyAdmin.deployTransaction.hash} ...`)
+  let receipt = await proxyAdmin.deployTransaction.wait()
+
+  log(`Deploying Upgradeable Proxy for ${contractName} ...`)
+  const upgradable = await upgradableFac.deploy(target, proxyAdmin.address, '0x')
+  log(`Waiting for transaction ${upgradable.deployTransaction.hash} ...`)
+  receipt = await upgradable.deployTransaction.wait()
+
+  log({
+    contractAddress: target,
+    proxyAdmin: proxyAdmin.address,
+    upgradeableProxy: upgradable.address,
+    blockNumber: receipt.blockNumber,
+    gasUsed: receipt.gasUsed.toNumber(),
+  })
+
+  log()
+
+  return { admin: proxyAdmin.address, upgradeableProxy: upgradable.address }
+}
+
 const deployContract: (...p: Parameters<typeof deployContractAndGetBlockNumber>) => Promise<string> = (...p) =>
   deployContractAndGetBlockNumber(...p).then(([a]) => a)
 
@@ -54,7 +101,7 @@ const deployContracts = async (
 ): Promise<[addresses: _RmmContractAddresses, startBlock: number]> => {
   const [primitiveFactory, startBlock] = await deployContractAndGetBlockNumber(
     deployer,
-    async (_, signer) => FactoryManager.getFactory(signer),
+    async (_, signer) => getFactoryOf(PrimitiveFactory.abi, PrimitiveFactory.bytecode, signer),
     'PrimitiveFactory',
     { ...overrides },
   )
@@ -66,6 +113,7 @@ const deployContracts = async (
       ...overrides,
     },
   )
+
   const descriptorArgs = [positionRenderer]
   const positionDescriptor = await deployContract(
     deployer,
@@ -92,6 +140,8 @@ const deployContracts = async (
     positionRenderer: positionRenderer,
     positionDescriptor: positionDescriptor,
     primitiveManager: primitiveManager,
+    positionRendererProxyAdmin: '0x0000000000000000000000000000000000000000',
+    positionRendererTransparentUpgradeableProxy: '0x0000000000000000000000000000000000000000',
   }
 
   return [addresses, startBlock]
