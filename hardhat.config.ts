@@ -60,7 +60,12 @@ const {
 function createTestnetConfig(network: keyof typeof chainIds): NetworkUserConfig {
   const url: string = 'https://' + network + '.infura.io/v3/' + INFURA_API_KEY
   return {
-    accounts: [DEPLOYER_KEY],
+    accounts: {
+      count: 10,
+      initialIndex: 0,
+      mnemonic: MNEMONIC,
+      path: "m/44'/60'/0'/0",
+    },
     chainId: chainIds[network],
     url,
     gas: 'auto',
