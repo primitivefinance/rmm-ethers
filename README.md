@@ -161,8 +161,8 @@ export interface AllocateOptions extends PermitTokens, LiquidityOptions, Recipie
 
 /** Remove liquidity argument details. */
 export interface RemoveOptions extends LiquidityOptions, RecipientOptions, NativeOptions, Deadline {
-  expectedRisky: Wei
-  expectedStable: Wei
+  additionalRisky: Wei
+  additionalStable: Wei
   toMargin: boolean
   slippageTolerance: Percentage
 }

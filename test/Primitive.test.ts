@@ -1,7 +1,7 @@
 import hre, { deployRmm } from 'hardhat'
 import chai from 'chai'
 import { ethers } from 'hardhat'
-import { Contract, Signer, utils } from 'ethers'
+import { BigNumber, Contract, Signer, utils } from 'ethers'
 import { Base64 } from 'js-base64'
 import { Engine } from '@primitivefi/rmm-sdk'
 import { parsePercentage, parseWei, Time } from 'web3-units'
@@ -237,6 +237,57 @@ describe('RMM Ethers', function () {
       expect(details.hash).to.not.be.undefined
     })
 
+    it('allocates liquidity to a pool then removes the exact amount', async function () {
+      const standard = { fromMargin: false, slippageTolerance: parsePercentage(0.0), recipient: user0 }
+
+      const refreshed = await rmm.getPool(pool.poolId)
+      const [bfre0, bfre1] = await Promise.all([risky.balanceOf(user0), stable.balanceOf(user0)])
+
+      const delLiquidity = parseWei(1)
+      const amounts = refreshed.liquidityQuote(delLiquidity, PoolSides.RMM_LP)
+
+      const options: AllocateOptions = {
+        delRisky: amounts.delRisky,
+        delStable: amounts.delStable,
+        delLiquidity: delLiquidity,
+        createPool: false,
+        ...standard,
+      }
+
+      const details = await rmm.allocate({ pool: refreshed, options })
+
+      const removeDefault = {
+        toMargin: false,
+        fromMargin: false,
+        slippageTolerance: parsePercentage(0.0),
+        recipient: user0,
+      }
+
+      // remove liquidity
+
+      const postAllocatePool = await rmm.getPool(pool.poolId)
+      const removeOptions: RemoveOptions = {
+        delRisky: amounts.delRisky,
+        delStable: amounts.delStable,
+        additionalRisky: parseWei(0, amounts.delRisky.decimals),
+        additionalStable: parseWei(0, amounts.delStable.decimals),
+        delLiquidity: delLiquidity,
+        ...removeDefault,
+      }
+
+      const removeDetails = await rmm.remove({ pool: postAllocatePool, options: removeOptions })
+
+      const [aftr0, aftr1] = await Promise.all([risky.balanceOf(user0), stable.balanceOf(user0)])
+      const [riskyDiff, stableDiff] = [
+        BigNumber.from(aftr0).sub(bfre0).toString(),
+        BigNumber.from(aftr1).sub(bfre1).toString(),
+      ]
+      expect(riskyDiff.toString()).to.eq((0).toString())
+      expect(stableDiff.toString()).to.eq((0).toString())
+      expect(bfre0.toString()).to.deep.eq(aftr0.toString())
+      expect(bfre1.toString()).to.deep.eq(aftr1.toString())
+    })
+
     it('gets the tokenURI (which should be validated with rendering it)', async function () {
       const res = await new ethers.Contract(pool.address, Engine.ABI, deployer).reserves(pool.poolId)
       const reserveRisky = res.reserveRisky
@@ -369,10 +420,10 @@ describe('RMM Ethers', function () {
       const { delRisky, delStable } = refreshed.liquidityQuote(amountToRemove, PoolSides.RMM_LP)
 
       const options: RemoveOptions = {
-        delRisky: delRisky,
-        delStable: delStable,
-        expectedRisky: delRisky,
-        expectedStable: delStable,
+        delRisky,
+        delStable,
+        additionalRisky: parseWei(0, delRisky.decimals),
+        additionalStable: parseWei(0, delStable.decimals),
         delLiquidity: amountToRemove,
         ...standard,
       }

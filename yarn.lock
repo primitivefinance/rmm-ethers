@@ -2058,10 +2058,10 @@
     gaussian "^1.2.0"
     numeric "^1.2.6"
 
-"@primitivefi/rmm-sdk@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-sdk/-/rmm-sdk-1.0.1.tgz#6e4436e81a64b3db0a0080204762d0df1cc24056"
-  integrity sha512-BZb6gecEyaBxLWsuOMztHefe66PjV69nNa/ChsnaB26pV2vpLXTNNSzRGBUkxwTxuTiZ2VvKbiHbVrDN0713Rg==
+"@primitivefi/rmm-sdk@1.1.0-rc.9":
+  version "1.1.0-rc.9"
+  resolved "https://registry.yarnpkg.com/@primitivefi/rmm-sdk/-/rmm-sdk-1.1.0-rc.9.tgz#b780775c36b4672f7f0f4a0670131678063ca134"
+  integrity sha512-q+ObOawy40JHZ+k8h+x94bahfP3NKlVrFkMNK8mP1upjn+avpAWmr9N1ZaFj1KJa+MP5LuIa3cUTh3gUYvdA9w==
   dependencies:
     "@primitivefi/rmm-manager" "^1.1.0"
     "@primitivefi/rmm-math" "^2.0.0-beta.3"

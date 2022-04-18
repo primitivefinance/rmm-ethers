@@ -21,10 +21,10 @@ export async function main() {
   const chainId = rmm.connection.chainId
   log(`Using chainId: ${chainId}`)
 
-  if (chainId === 1) throw new Error('Do not use this in prod!')
+  if (chainId !== 1) throw new Error('Use this on mainnet!')
 
-  const risky = '0xc778417E063141139Fce010982780140Aa0cD5Ab' // rinkeby:WETH: FIX
-  const stable = '0x522064c1EafFEd8617BE64137f66A71D6C5c9aA3' // rinkeby:USDC: FIX
+  const risky = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2' // mainnet WETH
+  const stable = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48' // mainnet USDC
 
   await deployEngine(rmm, risky, stable)
 }
