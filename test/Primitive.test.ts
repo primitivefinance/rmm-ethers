@@ -237,7 +237,7 @@ describe('RMM Ethers', function () {
       expect(details.hash).to.not.be.undefined
     })
 
-    it('allocates liquidity to a pool then removes the exact amount', async function () {
+    it('allocates liquidity to a pool then removes the exact amount and checks the difference', async function () {
       const standard = { fromMargin: false, slippageTolerance: parsePercentage(0.0), recipient: user0 }
 
       const refreshed = await rmm.getPool(pool.poolId)
