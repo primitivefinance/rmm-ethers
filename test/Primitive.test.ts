@@ -282,8 +282,8 @@ describe('RMM Ethers', function () {
         BigNumber.from(aftr0).sub(bfre0).toString(),
         BigNumber.from(aftr1).sub(bfre1).toString(),
       ]
-      expect(riskyDiff.toString()).to.deep.eq(0)
-      expect(stableDiff.toString()).to.deep.eq(0)
+      expect(riskyDiff.toString()).to.eq((0).toString())
+      expect(stableDiff.toString()).to.eq((0).toString())
       expect(bfre0.toString()).to.deep.eq(aftr0.toString())
       expect(bfre1.toString()).to.deep.eq(aftr1.toString())
     })
