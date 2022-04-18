@@ -15,7 +15,7 @@
 
 ## 📦 Installation
 
-> This software is in Alpha. Use at your own risk.
+> This software is in Alpha. Use at your own risk. Only use the latest version.
 
 Installing locally:
 
